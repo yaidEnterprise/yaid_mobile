@@ -7,7 +7,7 @@
 >
 > **Documentos irmãos.** [`PROJECT-BASELINE.md`](./PROJECT-BASELINE.md) define **o quê** construímos
 > e as regras de produto. [`UX.md`](./UX.md) define a experiência.
-> [`mobile-api-contract.md`](./mobile-api-contract.md) é a fronteira verificada com a API YaID e
+> [`MOBILE-API-CONTRACT.md`](./MOBILE-API-CONTRACT.md) é a fronteira verificada com a API YaID e
 > **prevalece sobre este documento** em qualquer divergência sobre rotas, headers ou formatos.
 
 ---
@@ -338,7 +338,7 @@ verificando isso.
 
 ## 11. Fronteira com a API YaID
 
-A autoridade é [`mobile-api-contract.md`](./mobile-api-contract.md). Aqui ficam apenas as
+A autoridade é [`MOBILE-API-CONTRACT.md`](./MOBILE-API-CONTRACT.md). Aqui ficam apenas as
 consequências arquiteturais.
 
 ### 11.1 Autenticação por DID

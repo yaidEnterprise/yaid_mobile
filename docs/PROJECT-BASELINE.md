@@ -7,7 +7,7 @@
 > **O que ele não é.** Não trata de tecnologia, arquitetura de código ou aparência. Requisitos
 > técnicos estão em [`ARCHITECTURE.md`](./ARCHITECTURE.md); experiência e interface em
 > [`UX.md`](./UX.md); a fronteira com o servidor em
-> [`mobile-api-contract.md`](./mobile-api-contract.md).
+> [`MOBILE-API-CONTRACT.md`](./MOBILE-API-CONTRACT.md).
 >
 > **Contexto maior.** [`PROJECT-OVERVIEW.md`](./PROJECT-OVERVIEW.md) descreve a solução YaID como um
 > todo — as três frentes e como conversam. Este documento é autossuficiente para a frente mobile.
