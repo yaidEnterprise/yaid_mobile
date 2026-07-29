@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/victordegasperi/.claude /Users/victordegasperi/Documents/repositorios-git/yaid_mobile -type d -name \"layered-backend-architecture\" 2>/dev/null)",
+      "Read(//Users/victordegasperi/.claude/**)"
+    ]
+  }
+}
