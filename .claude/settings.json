@@ -15,7 +15,8 @@
       "Bash(SPECIFY_FEATURE_DIRECTORY=specs/002-comprovacao bash .specify/scripts/bash/setup-plan.sh --json)",
       "Bash(SPECIFY_FEATURE_DIRECTORY=specs/003-autorizacao bash .specify/scripts/bash/setup-plan.sh --json)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(bash .specify/scripts/bash/setup-tasks.sh --json)"
     ],
     "additionalDirectories": [
       "/Users/victordegasperi/Documents/repositorios-git/yaid_mobile/specs/002-comprovacao",
