@@ -2,7 +2,25 @@
   "permissions": {
     "allow": [
       "Bash(find /Users/victordegasperi/.claude /Users/victordegasperi/Documents/repositorios-git/yaid_mobile -type d -name \"layered-backend-architecture\" 2>/dev/null)",
-      "Read(//Users/victordegasperi/.claude/**)"
+      "Read(//Users/victordegasperi/.claude/**)",
+      "Bash(grep -n \"^#\\\\{1,3\\\\} \" docs/UX.md)",
+      "Bash(mkdir -p specs/001-identidade-acesso/checklists)",
+      "Bash(cp .specify/templates/spec-template.md specs/001-identidade-acesso/spec.md)",
+      "Bash(echo '{ *)",
+      "Bash(mkdir -p /Users/victordegasperi/Documents/repositorios-git/yaid_mobile/specs/002-comprovacao/checklists)",
+      "Bash(mkdir -p /Users/victordegasperi/Documents/repositorios-git/yaid_mobile/specs/003-autorizacao/checklists)",
+      "Bash(mkdir -p /Users/victordegasperi/Documents/repositorios-git/yaid_mobile/specs/004-revogacao/checklists)",
+      "Bash(bash .specify/scripts/bash/setup-plan.sh --json)",
+      "Bash(SPECIFY_FEATURE_DIRECTORY=specs/001-identidade-acesso bash .specify/scripts/bash/setup-plan.sh --json)",
+      "Bash(SPECIFY_FEATURE_DIRECTORY=specs/002-comprovacao bash .specify/scripts/bash/setup-plan.sh --json)",
+      "Bash(SPECIFY_FEATURE_DIRECTORY=specs/003-autorizacao bash .specify/scripts/bash/setup-plan.sh --json)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ],
+    "additionalDirectories": [
+      "/Users/victordegasperi/Documents/repositorios-git/yaid_mobile/specs/002-comprovacao",
+      "/Users/victordegasperi/Documents/repositorios-git/yaid_mobile/specs/003-autorizacao",
+      "/Users/victordegasperi/Documents/repositorios-git/yaid_mobile/specs/004-revogacao"
     ]
   }
 }
