@@ -40,7 +40,18 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Answer each gate explicitly. Any "No" requires an entry in Complexity Tracking below.
+
+| # | Gate | Pass? |
+|---|---|---|
+| I | Every external resource this feature touches has an interface in `shared/domain/interfaces/`, plus a concrete AND a fake in `shared/infra/`. No SDK / `expo-*` / `fetch` import outside `shared/clients/`. | |
+| II | Every task has a failing test written first. Test tree mirrors `src/` 1:1. Fixed vectors covered if crypto/DID/presentation is involved. | |
+| III | Layer dependencies respect the one-way direction. Presenter is composition-root only (stateless). Controllers return typed results; navigation stays in entry adapters. `shared/` gains no sixth entry. | |
+| IV | No telemetry, analytics, or crash-reporting SDK. No verification history persisted. No remote logging. | |
+| V | The seed never crosses the ViewModel boundary. PIN demanded on comprovar / autorizar / revogar. PIN failure never deletes identity. TLS pinning intact. | |
+| VI | Identifiers follow the canonical vocabulary map. `proofType` spelling conversion confined to the HTTP adapter. No user-facing "cancelar". | |
+| VII | Challenge fetched only after the person decides. Local eligibility check precedes any API call. Failure paths are visible and terminal. Regression tests present. | |
+| UX | Decision-screen invariants hold (no animation, ~400 ms inert buttons, equal-weight Autorizar/Recusar, no countdown). No toast for sensitive outcomes. No technical vocabulary in user-facing strings. WCAG 2.1 AA met. | |
 
 ## Project Structure
 
