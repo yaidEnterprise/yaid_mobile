@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="YaID Mobile Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TITLE -->
+        <mxCell id="title" value="YaID Mobile — Arquitetura (Ports &amp; Adapters / Camadas)" style="text;html=1;align=center;verticalAlign=middle;fontStyle=1;fontSize=18;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="1060" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- EXTERNAL ACTORS -->
+        <mxCell id="user" value="Usuário" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="100" width="120" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="deeplink" value="Deep Link&#xa;yaid://verify?session=&lt;token&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="700" y="100" width="200" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ======================================================= -->
+        <!-- LAYER 1: ENTRY ADAPTERS                                  -->
+        <!-- ======================================================= -->
+        <mxCell id="layer_entry" value="Entry Adapters — src/app/  (Expo Router)" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="190" width="1580" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="sc_index" value="index.tsx&#xa;(Tela Inicial)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="layer_entry">
+          <mxGeometry x="20" y="38" width="140" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="sc_create_id" value="onboarding/&#xa;create-identity.tsx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="layer_entry">
+          <mxGeometry x="180" y="38" width="140" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="sc_pin" value="onboarding/&#xa;define-pin.tsx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="layer_entry">
+          <mxGeometry x="340" y="38" width="140" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="sc_verify_pin" value="verify-pin.tsx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="layer_entry">
+          <mxGeometry x="500" y="38" width="140" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="sc_capture" value="credential/&#xa;capture-document.tsx&#xa;(spec 002 — planned)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=9;fontStyle=2;" vertex="1" parent="layer_entry">
+          <mxGeometry x="680" y="35" width="155" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="sc_session" value="verify/[session].tsx&#xa;(spec 003 — planned)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=9;fontStyle=2;" vertex="1" parent="layer_entry">
+          <mxGeometry x="855" y="35" width="155" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="sc_revoke" value="credential/revoke.tsx&#xa;(spec 004 — planned)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=9;fontStyle=2;" vertex="1" parent="layer_entry">
+          <mxGeometry x="1030" y="35" width="155" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ======================================================= -->
+        <!-- LAYER 2: MODULES                                         -->
+        <!-- ======================================================= -->
+        <mxCell id="layer_modules" value="Módulos — src/modules/" style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="1580" height="310" as="geometry"/>
+        </mxCell>
+
+        <!-- Module: identity -->
+        <mxCell id="mod_identity" value="identity" style="swimlane;startSize=25;fillColor=#fffde7;strokeColor=#d6b656;fontSize=11;fontStyle=1;" vertex="1" parent="layer_modules">
+          <mxGeometry x="10" y="35" width="560" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="id_presenter" value="Presenter&#xa;(Composition Root)&#xa;Monta concretos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="mod_identity">
+          <mxGeometry x="10" y="35" width="120" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="id_controller" value="Controller&#xa;Valida entrada&#xa;Mapeia erros" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="mod_identity">
+          <mxGeometry x="150" y="35" width="120" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="id_usecase" value="Use Case&#xa;create_identity&#xa;check_identity" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="mod_identity">
+          <mxGeometry x="290" y="35" width="120" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="id_viewmodel" value="ViewModel&#xa;Remove seed&#xa;(safety boundary)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="mod_identity">
+          <mxGeometry x="430" y="35" width="120" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_id1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="mod_identity" source="id_presenter" target="id_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_id2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="mod_identity" source="id_controller" target="id_usecase">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_id3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="mod_identity" source="id_usecase" target="id_viewmodel">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Module: access -->
+        <mxCell id="mod_access" value="access" style="swimlane;startSize=25;fillColor=#fffde7;strokeColor=#d6b656;fontSize=11;fontStyle=1;" vertex="1" parent="layer_modules">
+          <mxGeometry x="10" y="175" width="560" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac_presenter" value="Presenter&#xa;(Composition Root)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="mod_access">
+          <mxGeometry x="10" y="35" width="120" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac_controller" value="Controller&#xa;Valida PIN input" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="mod_access">
+          <mxGeometry x="150" y="35" width="120" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac_usecase" value="Use Case&#xa;define_pin&#xa;verify_pin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="mod_access">
+          <mxGeometry x="290" y="35" width="120" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="ac_viewmodel" value="ViewModel&#xa;Resultado tipado" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="mod_access">
+          <mxGeometry x="430" y="35" width="120" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_ac1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="mod_access" source="ac_presenter" target="ac_controller">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_ac2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="mod_access" source="ac_controller" target="ac_usecase">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_ac3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="mod_access" source="ac_usecase" target="ac_viewmodel">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Planned modules -->
+        <mxCell id="mod_credential" value="credential (spec 002 — planned)&#xa;issue_credential · revoke_credential" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=10;fontStyle=2;" vertex="1" parent="layer_modules">
+          <mxGeometry x="600" y="35" width="280" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="mod_proof" value="proof-session + presentation (spec 003 — planned)&#xa;get_proof_session · cancel_proof_session · present_proof" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=10;fontStyle=2;" vertex="1" parent="layer_modules">
+          <mxGeometry x="900" y="35" width="320" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="mod_revocation" value="revocation (spec 004 — planned)&#xa;revoke_credential" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=10;fontStyle=2;" vertex="1" parent="layer_modules">
+          <mxGeometry x="1240" y="35" width="280" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- ======================================================= -->
+        <!-- LAYER 3: SHARED DOMAIN                                   -->
+        <!-- ======================================================= -->
+        <mxCell id="layer_domain" value="Shared Domain — src/shared/domain/  (zero imports de framework)" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="660" width="1580" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="dom_entities" value="Entities&#xa;identity · credential&#xa;proof_session" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="layer_domain">
+          <mxGeometry x="20" y="40" width="160" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="dom_enums" value="Enums&#xa;proof_type · stage&#xa;proof_session_status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="layer_domain">
+          <mxGeometry x="200" y="40" width="160" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="dom_errors" value="Domain Errors&#xa;identity_errors&#xa;pin_errors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="layer_domain">
+          <mxGeometry x="380" y="40" width="160" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="dom_repos" value="«interface»&#xa;Repositories&#xa;IdentityRepository&#xa;CredentialRepository" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;fontStyle=2;" vertex="1" parent="layer_domain">
+          <mxGeometry x="560" y="40" width="180" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="dom_providers" value="«interface» Providers / Ports&#xa;Signer · Clock · Randomness&#xa;PinLock · DocumentCapture&#xa;ImageProcessor · YaIDApi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;fontStyle=2;" vertex="1" parent="layer_domain">
+          <mxGeometry x="760" y="35" width="220" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="dom_result" value="Result Types&#xa;(typed success/failure)&#xa;shared/result/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="layer_domain">
+          <mxGeometry x="1000" y="40" width="160" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="dom_environments" value="environments.ts&#xa;EXPO_PUBLIC_STAGE&#xa;valida stage → escolhe impls" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="layer_domain">
+          <mxGeometry x="1180" y="40" width="180" height="75" as="geometry"/>
+        </mxCell>
+
+        <!-- ======================================================= -->
+        <!-- LAYER 4: SHARED INFRA                                    -->
+        <!-- ======================================================= -->
+        <mxCell id="layer_infra" value="Shared Infra — src/shared/infra/ + clients/  (implementações concretas e fakes)" style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="830" width="1580" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_id_repo" value="IdentityRepository&#xa;Concrete (SecureStore)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="10" y="38" width="160" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_id_mock" value="IdentityRepository&#xa;Mock (in-memory)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="10" y="98" width="160" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_signer" value="Signer Concrete&#xa;(Ed25519)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="185" y="38" width="135" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_signer_mock" value="Signer Mock&#xa;(fixed key)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="185" y="98" width="135" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_rand" value="Randomness Concrete&#xa;(CSPRNG do SO)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="335" y="38" width="145" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_rand_mock" value="Randomness Mock&#xa;(determinístico)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="335" y="98" width="145" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_clock" value="Clock Concrete&#xa;(Relógio do SO)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="495" y="38" width="135" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_clock_mock" value="Clock Mock&#xa;(hora controlada)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="495" y="98" width="135" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_pinlock" value="PinLock Concrete&#xa;(SecureStore + contador)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="645" y="38" width="155" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_pinlock_mock" value="PinLock Mock&#xa;(in-memory)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="645" y="98" width="155" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_dto" value="DTOs &amp; Mappers&#xa;(API YaID ↔ Entities)&#xa;infra/dto/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="815" y="38" width="155" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_yaid_mock" value="YaIDApi Mock&#xa;(respostas roteirizadas)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="815" y="98" width="155" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="infra_clients" value="Clients&#xa;SecureStoreClient&#xa;(thin SDK wrapper)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="layer_infra">
+          <mxGeometry x="985" y="38" width="155" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ======================================================= -->
+        <!-- LAYER 5: EXTERNAL SYSTEMS                                -->
+        <!-- ======================================================= -->
+        <mxCell id="layer_ext" value="Sistemas Externos" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1020" width="1580" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="ext_store" value="OS Secure Store&#xa;(Keychain / Keystore)&#xa;seed + chave de cifragem" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="layer_ext">
+          <mxGeometry x="60" y="28" width="200" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="ext_yaid" value="YaID API&#xa;HTTPS + TLS cert pinning&#xa;Auth: DID / Ed25519 — 6 rotas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="layer_ext">
+          <mxGeometry x="380" y="28" width="220" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="ext_camera" value="Camera&#xa;(DocumentCapture)&#xa;spec 002 — planned" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;fontSize=10;fontStyle=2;" vertex="1" parent="layer_ext">
+          <mxGeometry x="720" y="28" width="180" height="65" as="geometry"/>
+        </mxCell>
+        <mxCell id="ext_system" value="Sistema Operacional&#xa;Clock · CSPRNG" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="layer_ext">
+          <mxGeometry x="1020" y="28" width="180" height="65" as="geometry"/>
+        </mxCell>
+
+        <!-- ======================================================= -->
+        <!-- INTER-LAYER EDGES                                        -->
+        <!-- ======================================================= -->
+
+        <!-- User/DeepLink → Entry Adapters -->
+        <mxCell id="e_user_entry" value="toque" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.1;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="user" target="layer_entry">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_deeplink_entry" value="deep link" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="deeplink" target="layer_entry">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Entry Adapter → Modules (screen calls presenter) -->
+        <mxCell id="e_entry_mod" value="1. chama Presenter" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer_entry" target="layer_modules">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Presenter reads environments (dashed) -->
+        <mxCell id="e_pres_env" value="lê stage" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.85;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer_modules" target="dom_environments">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Use Case → Domain interfaces -->
+        <mxCell id="e_mod_domain" value="2. usa portas (injeção de dependência)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer_modules" target="layer_domain">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Domain interfaces ← Infra (implements, dashed upward) -->
+        <mxCell id="e_infra_repos" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;fontSize=9;exitX=0.35;exitY=0;exitDx=0;exitDy=0;entryX=0.35;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer_infra" target="dom_repos">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_infra_providers" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;endFill=0;fontSize=9;exitX=0.55;exitY=0;exitDx=0;exitDy=0;entryX=0.55;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer_infra" target="dom_providers">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Infra → External Systems -->
+        <mxCell id="e_id_repo_store" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="infra_id_repo" target="ext_store">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_pinlock_store" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="infra_pinlock" target="ext_store">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_clients_store" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="infra_clients" target="ext_store">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_dto_yaid" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="infra_dto" target="ext_yaid">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_clock_sys" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="infra_clock" target="ext_system">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_rand_sys" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="infra_rand" target="ext_system">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_signer_sys" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="infra_signer" target="ext_system">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ======================================================= -->
+        <!-- LEGEND                                                   -->
+        <!-- ======================================================= -->
+        <mxCell id="legend" value="Legenda" style="swimlane;startSize=25;fillColor=none;strokeColor=#666666;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="830" width="360" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_s1" value="" style="rounded=1;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="35" width="24" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_t1" value="Entry Adapter (tela Expo Router)" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="42" y="33" width="210" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_s2" value="" style="rounded=1;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="58" width="24" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_t2" value="Presenter (Composition Root)" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="42" y="56" width="210" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_s3" value="" style="rounded=1;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="81" width="24" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_t3" value="Controller" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="42" y="79" width="210" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_s4" value="" style="rounded=1;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="104" width="24" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_t4" value="Use Case / Infra Concreto" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="42" y="102" width="210" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_s5" value="" style="rounded=1;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="127" width="24" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_t5" value="ViewModel (safety boundary — sem seed)" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="42" y="125" width="210" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_s6" value="" style="rounded=1;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="150" width="24" height="14" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_t6" value="Fake / Mock (stage=test — sem rede/SO)" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;" vertex="1" parent="legend">
+          <mxGeometry x="42" y="148" width="210" height="18" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
