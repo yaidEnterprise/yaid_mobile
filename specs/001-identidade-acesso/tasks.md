@@ -32,9 +32,9 @@ This project follows the YaID Wallet structure per plan.md:
 
 **Purpose**: Install dependencies and configure tooling before any code is written
 
-- [ ] T001 Install `@noble/ed25519` and `expo-secure-store`; verify both appear in package.json dependencies
-- [ ] T002 Add `tsx` as a dev dependency; configure `test` script in package.json (`npx tsx --test`)
-- [ ] T003 [P] Configure TypeScript strict mode (`strict: true`, `noUncheckedIndexedAccess: true`) in tsconfig.json
+- [X] T001 Install `@noble/ed25519` and `expo-secure-store`; verify both appear in package.json dependencies
+- [X] T002 Add `tsx` as a dev dependency; configure `test` script in package.json (`npx tsx --test`)
+- [X] T003 [P] Configure TypeScript strict mode (`strict: true`, `noUncheckedIndexedAccess: true`) in tsconfig.json
 
 ---
 
@@ -47,34 +47,34 @@ prerequisites for every user story
 
 ### Shared Domain Primitives
 
-- [ ] T004 Create `Stage` enum (`test | dev | homol | prod`) in src/shared/domain/enums/stage.ts
-- [ ] T005 Implement `environments.ts` reading `EXPO_PUBLIC_STAGE`, validating and resolving `Stage` in src/shared/environments.ts
-- [ ] T006 [P] Create `Identity` entity (`seed: Uint8Array`, `publicKey: Uint8Array`, `did: string`) with invariant test in src/shared/domain/entities/identity.ts + tests/shared/domain/entities/identity.test.ts
-- [ ] T007 [P] Create identity domain errors (`IdentityAlreadyExistsError`, `IdentityCreationFailedError`) in src/shared/domain/errors/identity_errors.ts
-- [ ] T008 [P] Create PIN domain errors (`PinNotInitializedError`, `PinWrongError`, `PinBackoffActiveError`, `PinObviousError`, `PinMismatchError`) in src/shared/domain/errors/pin_errors.ts
+- [X] T004 Create `Stage` enum (`test | dev | homol | prod`) in src/shared/domain/enums/stage.ts
+- [X] T005 Implement `environments.ts` reading `EXPO_PUBLIC_STAGE`, validating and resolving `Stage` in src/shared/environments.ts
+- [X] T006 [P] Create `Identity` entity (`seed: Uint8Array`, `publicKey: Uint8Array`, `did: string`) with invariant test in src/shared/domain/entities/identity.ts + tests/shared/domain/entities/identity.test.ts
+- [X] T007 [P] Create identity domain errors (`IdentityAlreadyExistsError`, `IdentityCreationFailedError`) in src/shared/domain/errors/identity_errors.ts
+- [X] T008 [P] Create PIN domain errors (`PinNotInitializedError`, `PinWrongError`, `PinBackoffActiveError`, `PinObviousError`, `PinMismatchError`) in src/shared/domain/errors/pin_errors.ts
 
 ### Port Interfaces
 
-- [ ] T009 [P] Define `IIdentityRepository` (`save` / `load` / `exists` / `clear`) in src/shared/domain/interfaces/repositories/identity_repository.ts
-- [ ] T010 [P] Define `ISigner` (`getPublicKey` / `sign`) in src/shared/domain/interfaces/providers/signer.ts
-- [ ] T011 [P] Define `IRandomness` (`getBytes`) in src/shared/domain/interfaces/providers/randomness.ts
-- [ ] T012 [P] Define `IClock` (`nowMs` / `nowSeconds`) in src/shared/domain/interfaces/providers/clock.ts
-- [ ] T013 [P] Define `IPinLock` + `PinStatus` (`initialize` / `verify` / `getStatus`) in src/shared/domain/interfaces/providers/pin_lock.ts
+- [X] T009 [P] Define `IIdentityRepository` (`save` / `load` / `exists` / `clear`) in src/shared/domain/interfaces/repositories/identity_repository.ts
+- [X] T010 [P] Define `ISigner` (`getPublicKey` / `sign`) in src/shared/domain/interfaces/providers/signer.ts
+- [X] T011 [P] Define `IRandomness` (`getBytes`) in src/shared/domain/interfaces/providers/randomness.ts
+- [X] T012 [P] Define `IClock` (`nowMs` / `nowSeconds`) in src/shared/domain/interfaces/providers/clock.ts
+- [X] T013 [P] Define `IPinLock` + `PinStatus` (`initialize` / `verify` / `getStatus`) in src/shared/domain/interfaces/providers/pin_lock.ts
 
 ### Infrastructure Utilities
 
-- [ ] T014 Create `SecureStoreClient` (thin wrapper over `expo-secure-store` with `WHEN_UNLOCKED_THIS_DEVICE_ONLY`) in src/shared/clients/secure_store_client.ts
-- [ ] T015 [P] Create result types in src/shared/result/create_identity_result.ts and src/shared/result/define_pin_result.ts
+- [X] T014 Create `SecureStoreClient` (thin wrapper over `expo-secure-store` with `WHEN_UNLOCKED_THIS_DEVICE_ONLY`) in src/shared/clients/secure_store_client.ts
+- [X] T015 [P] Create result types in src/shared/result/create_identity_result.ts and src/shared/result/define_pin_result.ts
 
 ### Mock Implementations + Contract Tests (TDD)
 
 > **NOTE: Write each test FIRST, confirm it FAILS, then implement the mock**
 
-- [ ] T016 [P] Write `IdentityRepositoryMock` contract test (save→load returns same entity; load-when-empty→null; exists/clear invariants; second-save-wins); implement mock in src/shared/infra/repositories/mock/identity_repository_mock.ts + tests/shared/infra/providers/mock/identity_repository_mock.test.ts
-- [ ] T017 [P] Write `SignerMock` contract test (fixed 32-byte seed produces deterministic publicKey and signature); implement mock in src/shared/infra/providers/mock/signer_mock.ts + tests/shared/infra/providers/mock/signer_mock.test.ts
-- [ ] T018 [P] Write `RandomnessMock` contract test (returns fixed deterministic byte sequence for any n); implement mock in src/shared/infra/providers/mock/randomness_mock.ts + tests/shared/infra/providers/mock/randomness_mock.test.ts
-- [ ] T019 [P] Write `ClockMock` contract test (`nowMs` returns set value; `advance(ms)` increments by delta); implement mock with `advance(ms: number)` in src/shared/infra/providers/mock/clock_mock.ts + tests/shared/infra/providers/mock/clock_mock.test.ts
-- [ ] T020 [P] Write `PinLockMock` contract test covering all scenarios: `initialize→verify(correct)→success`; `verify(wrong)×4→PinWrongError{attemptsRemaining:1}`; `verify(wrong)` 5th→`PinBackoffActiveError{lockedUntilMs}`; `verify` during lockout→`PinBackoffActiveError`; `ClockMock.advance(60_001)→verify(correct)→success`; 2nd lockout duration > 1st (escalation); **regression**: `IdentityRepositoryMock.exists()` returns `true` before and after any number of PIN errors; implement mock in src/shared/infra/providers/mock/pin_lock_mock.ts + tests/shared/infra/providers/mock/pin_lock_mock.test.ts
+- [X] T016 [P] Write `IdentityRepositoryMock` contract test (save→load returns same entity; load-when-empty→null; exists/clear invariants; second-save-wins); implement mock in src/shared/infra/repositories/mock/identity_repository_mock.ts + tests/shared/infra/providers/mock/identity_repository_mock.test.ts
+- [X] T017 [P] Write `SignerMock` contract test (fixed 32-byte seed produces deterministic publicKey and signature); implement mock in src/shared/infra/providers/mock/signer_mock.ts + tests/shared/infra/providers/mock/signer_mock.test.ts
+- [X] T018 [P] Write `RandomnessMock` contract test (returns fixed deterministic byte sequence for any n); implement mock in src/shared/infra/providers/mock/randomness_mock.ts + tests/shared/infra/providers/mock/randomness_mock.test.ts
+- [X] T019 [P] Write `ClockMock` contract test (`nowMs` returns set value; `advance(ms)` increments by delta); implement mock with `advance(ms: number)` in src/shared/infra/providers/mock/clock_mock.ts + tests/shared/infra/providers/mock/clock_mock.test.ts
+- [X] T020 [P] Write `PinLockMock` contract test covering all scenarios: `initialize→verify(correct)→success`; `verify(wrong)×4→PinWrongError{attemptsRemaining:1}`; `verify(wrong)` 5th→`PinBackoffActiveError{lockedUntilMs}`; `verify` during lockout→`PinBackoffActiveError`; `ClockMock.advance(60_001)→verify(correct)→success`; 2nd lockout duration > 1st (escalation); **regression**: `IdentityRepositoryMock.exists()` returns `true` before and after any number of PIN errors; implement mock in src/shared/infra/providers/mock/pin_lock_mock.ts + tests/shared/infra/providers/mock/pin_lock_mock.test.ts
 
 **Checkpoint**: Foundational phase complete — all mock contract tests pass; user story implementation can now begin in parallel
 
@@ -91,32 +91,32 @@ without any network request; home screen shows identity-no-credential state.
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T021 [P] [US1] Write failing `DefinePinUseCase` test: `pin=confirm,non-obvious→initialize() called`; `pin≠confirm→PinMismatchError`; `111111→PinObviousError`; `123456→PinObviousError`; `987654→PinObviousError`; `112233→accepted` in tests/modules/access/app/define_pin_usecase.test.ts
-- [ ] T022 [P] [US1] Write failing `DefinePinViewModel` test in tests/modules/access/app/define_pin_viewmodel.test.ts
-- [ ] T023 [P] [US1] Write failing `DefinePinController` test (valid input→success result; each error input→correct error result) in tests/modules/access/app/define_pin_controller.test.ts
-- [ ] T024 [P] [US1] Write failing `CreateIdentityUseCase` test: **fixed-vector** (32-byte zero seed→expected publicKey→expected DID `did:yaid:user:<hex64>`); identity-already-exists guard; save-failure→`IdentityCreationFailedError` in tests/modules/identity/app/create_identity_usecase.test.ts
-- [ ] T025 [P] [US1] Write failing `CreateIdentityViewModel` test: output contains only `{ did: string }`; `seed` and `publicKey` fields are ABSENT from output in tests/modules/identity/app/create_identity_viewmodel.test.ts
-- [ ] T026 [P] [US1] Write failing `CreateIdentityController` test (success path; error propagation) in tests/modules/identity/app/create_identity_controller.test.ts
+- [X] T021 [P] [US1] Write failing `DefinePinUseCase` test: `pin=confirm,non-obvious→initialize() called`; `pin≠confirm→PinMismatchError`; `111111→PinObviousError`; `123456→PinObviousError`; `987654→PinObviousError`; `112233→accepted` in tests/modules/access/app/define_pin_usecase.test.ts
+- [X] T022 [P] [US1] Write failing `DefinePinViewModel` test in tests/modules/access/app/define_pin_viewmodel.test.ts
+- [X] T023 [P] [US1] Write failing `DefinePinController` test (valid input→success result; each error input→correct error result) in tests/modules/access/app/define_pin_controller.test.ts
+- [X] T024 [P] [US1] Write failing `CreateIdentityUseCase` test: **fixed-vector** (32-byte zero seed→expected publicKey→expected DID `did:yaid:user:<hex64>`); identity-already-exists guard; save-failure→`IdentityCreationFailedError` in tests/modules/identity/app/create_identity_usecase.test.ts
+- [X] T025 [P] [US1] Write failing `CreateIdentityViewModel` test: output contains only `{ did: string }`; `seed` and `publicKey` fields are ABSENT from output in tests/modules/identity/app/create_identity_viewmodel.test.ts
+- [X] T026 [P] [US1] Write failing `CreateIdentityController` test (success path; error propagation) in tests/modules/identity/app/create_identity_controller.test.ts
 
 ### Implementation for User Story 1
 
-- [ ] T027 [US1] Implement `DefinePinUseCase` (reject pin≠confirm→`PinMismatchError`; reject all-same digits→`PinObviousError`; reject strictly ascending consecutive sequence→`PinObviousError`; reject strictly descending consecutive sequence→`PinObviousError`; call `IPinLock.initialize(pin)` on success) in src/modules/access/app/define_pin_usecase.ts
-- [ ] T028 [P] [US1] Implement `DefinePinViewModel` in src/modules/access/app/define_pin_viewmodel.ts
-- [ ] T029 [US1] Implement `DefinePinController` in src/modules/access/app/define_pin_controller.ts
-- [ ] T030 [US1] Implement `DefinePinPresenter` (composition root: resolves `PinLockMock` + `ClockMock` for `Stage.Test`; `PinLockConcrete` + `ClockConcrete` for all other stages) in src/modules/access/app/define_pin_presenter.ts
-- [ ] T031 [US1] Implement `CreateIdentityUseCase` (call `IIdentityRepository.clear()` first; generate seed via `IRandomness.getBytes(32)`; derive publicKey via `ISigner.getPublicKey(seed)`; build DID as `did:yaid:user:` + `toHexLower(publicKey)`; save via `IIdentityRepository.save({seed, publicKey, did})`) in src/modules/identity/app/create_identity_usecase.ts
-- [ ] T032 [P] [US1] Implement `CreateIdentityViewModel` (receives full `Identity`; returns only `{ did: string }` — `seed` and `publicKey` stripped before output reaches entry adapter) in src/modules/identity/app/create_identity_viewmodel.ts
-- [ ] T033 [US1] Implement `CreateIdentityController` in src/modules/identity/app/create_identity_controller.ts
-- [ ] T034 [US1] Implement `CreateIdentityPresenter` (composition root: resolves `IdentityRepositoryMock` + `RandomnessMock` + `SignerMock` for `Stage.Test`; concretes for all other stages) in src/modules/identity/app/create_identity_presenter.ts
-- [ ] T035 [P] [US1] Implement `IdentityRepositoryConcrete` (stores only seed as base64url at `yaid.identity.seed`; derives publicKey and DID on load via `ISigner.getPublicKey`; `WHEN_UNLOCKED_THIS_DEVICE_ONLY`) in src/shared/infra/repositories/identity_repository_concrete.ts
-- [ ] T036 [P] [US1] Implement `SignerConcrete` (wraps `@noble/ed25519`: synchronous `getPublicKeySync(seed)` + async `sign(payload, seed)`) in src/shared/infra/providers/signer_concrete.ts
-- [ ] T037 [P] [US1] Implement `RandomnessConcrete` (returns `crypto.getRandomValues(new Uint8Array(n))`) in src/shared/infra/providers/randomness_concrete.ts
-- [ ] T038 [P] [US1] Implement `ClockConcrete` (`nowMs: () => Date.now()`; `nowSeconds: () => Math.floor(Date.now() / 1000)`) in src/shared/infra/providers/clock_concrete.ts
-- [ ] T039 [US1] Implement `PinLockConcrete` (initialize: store PIN at `yaid.pin.value`, write clean state `{attemptCount:0, lockoutCount:0, lockedUntilMs:null}` to `yaid.pin.state`; verify: load PIN + state, check lockout via `IClock.nowMs()`, increment `attemptCount` on wrong, trigger lockout at 5th failure using schedule `[60_000, 300_000, 900_000, 3_600_000]`, reset `attemptCount` to 0 on success; `IClock` injected at construction) in src/shared/infra/providers/pin_lock_concrete.ts
-- [ ] T040 [US1] Implement `_layout.tsx` (Expo Router root layout; declares light theme; no state, no business logic) in src/app/_layout.tsx
-- [ ] T041 [US1] Implement `define-pin.tsx` (two-step: enter 6 digits → confirm 6 digits; numeric keypad; hidden digits; on mismatch: neutral message + allow retry without clearing step 1; on obvious PIN: message explaining reason + allow retry; no attempt limit on creation) in src/app/onboarding/define-pin.tsx
-- [ ] T042 [US1] Implement `create-identity.tsx` (calls `CreateIdentityController.execute({})` on mount; navigates to `index.tsx` synchronously on success — no loading indicator; shows actionable error screen on `IdentityCreationFailedError` naming cause and next action; never leaves person in ambiguous state) in src/app/onboarding/create-identity.tsx
-- [ ] T043 [US1] Implement `index.tsx` (checks `IIdentityRepository.exists()` on mount; no-identity state: two-sentence YaID explanation + single "Começar" button; identity-no-credential state: device-binding warning per FR-008 + "Verificar documento" button; no PIN required; no sensitive data visible) in src/app/index.tsx
+- [X] T027 [US1] Implement `DefinePinUseCase` (reject pin≠confirm→`PinMismatchError`; reject all-same digits→`PinObviousError`; reject strictly ascending consecutive sequence→`PinObviousError`; reject strictly descending consecutive sequence→`PinObviousError`; call `IPinLock.initialize(pin)` on success) in src/modules/access/app/define_pin_usecase.ts
+- [X] T028 [P] [US1] Implement `DefinePinViewModel` in src/modules/access/app/define_pin_viewmodel.ts
+- [X] T029 [US1] Implement `DefinePinController` in src/modules/access/app/define_pin_controller.ts
+- [X] T030 [US1] Implement `DefinePinPresenter` (composition root: resolves `PinLockMock` + `ClockMock` for `Stage.Test`; `PinLockConcrete` + `ClockConcrete` for all other stages) in src/modules/access/app/define_pin_presenter.ts
+- [X] T031 [US1] Implement `CreateIdentityUseCase` (call `IIdentityRepository.clear()` first; generate seed via `IRandomness.getBytes(32)`; derive publicKey via `ISigner.getPublicKey(seed)`; build DID as `did:yaid:user:` + `toHexLower(publicKey)`; save via `IIdentityRepository.save({seed, publicKey, did})`) in src/modules/identity/app/create_identity_usecase.ts
+- [X] T032 [P] [US1] Implement `CreateIdentityViewModel` (receives full `Identity`; returns only `{ did: string }` — `seed` and `publicKey` stripped before output reaches entry adapter) in src/modules/identity/app/create_identity_viewmodel.ts
+- [X] T033 [US1] Implement `CreateIdentityController` in src/modules/identity/app/create_identity_controller.ts
+- [X] T034 [US1] Implement `CreateIdentityPresenter` (composition root: resolves `IdentityRepositoryMock` + `RandomnessMock` + `SignerMock` for `Stage.Test`; concretes for all other stages) in src/modules/identity/app/create_identity_presenter.ts
+- [X] T035 [P] [US1] Implement `IdentityRepositoryConcrete` (stores only seed as base64url at `yaid.identity.seed`; derives publicKey and DID on load via `ISigner.getPublicKey`; `WHEN_UNLOCKED_THIS_DEVICE_ONLY`) in src/shared/infra/repositories/identity_repository_concrete.ts
+- [X] T036 [P] [US1] Implement `SignerConcrete` (wraps `@noble/ed25519`: synchronous `getPublicKeySync(seed)` + async `sign(payload, seed)`) in src/shared/infra/providers/signer_concrete.ts
+- [X] T037 [P] [US1] Implement `RandomnessConcrete` (returns `crypto.getRandomValues(new Uint8Array(n))`) in src/shared/infra/providers/randomness_concrete.ts
+- [X] T038 [P] [US1] Implement `ClockConcrete` (`nowMs: () => Date.now()`; `nowSeconds: () => Math.floor(Date.now() / 1000)`) in src/shared/infra/providers/clock_concrete.ts
+- [X] T039 [US1] Implement `PinLockConcrete` (initialize: store PIN at `yaid.pin.value`, write clean state `{attemptCount:0, lockoutCount:0, lockedUntilMs:null}` to `yaid.pin.state`; verify: load PIN + state, check lockout via `IClock.nowMs()`, increment `attemptCount` on wrong, trigger lockout at 5th failure using schedule `[60_000, 300_000, 900_000, 3_600_000]`, reset `attemptCount` to 0 on success; `IClock` injected at construction) in src/shared/infra/providers/pin_lock_concrete.ts
+- [X] T040 [US1] Implement `_layout.tsx` (Expo Router root layout; declares light theme; no state, no business logic) in src/app/_layout.tsx
+- [X] T041 [US1] Implement `define-pin.tsx` (two-step: enter 6 digits → confirm 6 digits; numeric keypad; hidden digits; on mismatch: neutral message + allow retry without clearing step 1; on obvious PIN: message explaining reason + allow retry; no attempt limit on creation) in src/app/onboarding/define-pin.tsx
+- [X] T042 [US1] Implement `create-identity.tsx` (calls `CreateIdentityController.execute({})` on mount; navigates to `index.tsx` synchronously on success — no loading indicator; shows actionable error screen on `IdentityCreationFailedError` naming cause and next action; never leaves person in ambiguous state) in src/app/onboarding/create-identity.tsx
+- [X] T043 [US1] Implement `index.tsx` (checks `IIdentityRepository.exists()` on mount; no-identity state: two-sentence YaID explanation + single "Começar" button; identity-no-credential state: device-binding warning per FR-008 + "Verificar documento" button; no PIN required; no sensitive data visible) in src/app/index.tsx
 
 **Checkpoint**: User Story 1 complete — first-use flow works end-to-end without network; identity persists across restarts; all automated tests pass; manually verified per quickstart.md §2.1–§2.4
 
@@ -135,18 +135,18 @@ reopen app during lockout and confirm lockout persists.
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T044 [P] [US2] Write failing `VerifyPinUseCase` test: correct PIN→resolves; wrong PIN→`PinWrongError{attemptsRemaining}`; active lockout→`PinBackoffActiveError{lockedUntilMs}`; desist (no PIN submitted)→returns cancelled without consuming an attempt in tests/modules/access/app/verify_pin_usecase.test.ts
-- [ ] T045 [P] [US2] Write failing `VerifyPinViewModel` test: maps `PinWrongError` to `{ attemptsRemaining: number }`; maps `PinBackoffActiveError` to `{ remainingMs: number }` (derived as `lockedUntilMs - clock.nowMs()`) in tests/modules/access/app/verify_pin_viewmodel.test.ts
-- [ ] T046 [P] [US2] Write failing `VerifyPinController` test (each outcome: success, wrong, locked, desist) in tests/modules/access/app/verify_pin_controller.test.ts
-- [ ] T047 [P] [US2] Add regression test to pin_lock_mock.test.ts: trigger lockout; serialize state to JSON; reconstruct mock from that JSON (simulated restart); confirm `getStatus()` returns the same locked state in tests/shared/infra/providers/mock/pin_lock_mock.test.ts
+- [X] T044 [P] [US2] Write failing `VerifyPinUseCase` test: correct PIN→resolves; wrong PIN→`PinWrongError{attemptsRemaining}`; active lockout→`PinBackoffActiveError{lockedUntilMs}`; desist (no PIN submitted)→returns cancelled without consuming an attempt in tests/modules/access/app/verify_pin_usecase.test.ts
+- [X] T045 [P] [US2] Write failing `VerifyPinViewModel` test: maps `PinWrongError` to `{ attemptsRemaining: number }`; maps `PinBackoffActiveError` to `{ remainingMs: number }` (derived as `lockedUntilMs - clock.nowMs()`) in tests/modules/access/app/verify_pin_viewmodel.test.ts
+- [X] T046 [P] [US2] Write failing `VerifyPinController` test (each outcome: success, wrong, locked, desist) in tests/modules/access/app/verify_pin_controller.test.ts
+- [X] T047 [P] [US2] Add regression test to pin_lock_mock.test.ts: trigger lockout; serialize state to JSON; reconstruct mock from that JSON (simulated restart); confirm `getStatus()` returns the same locked state in tests/shared/infra/providers/mock/pin_lock_mock.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T048 [US2] Implement `VerifyPinUseCase` (calls `IPinLock.getStatus()` to check lock state before attempting; calls `IPinLock.verify(pin)` when unlocked; surfaces `PinWrongError` and `PinBackoffActiveError`; desist path returns cancelled result without calling `verify`) in src/modules/access/app/verify_pin_usecase.ts
-- [ ] T049 [P] [US2] Implement `VerifyPinViewModel` (maps `PinWrongError` → `{ attemptsRemaining }`; maps `PinBackoffActiveError` → `{ remainingMs: lockedUntilMs - clock.nowMs() }`) in src/modules/access/app/verify_pin_viewmodel.ts
-- [ ] T050 [US2] Implement `VerifyPinController` in src/modules/access/app/verify_pin_controller.ts
-- [ ] T051 [US2] Implement `VerifyPinPresenter` (composition root: injects `PinLockMock` + `ClockMock` for `Stage.Test`; `PinLockConcrete` + `ClockConcrete` for all other stages) in src/modules/access/app/verify_pin_presenter.ts
-- [ ] T052 [US2] Implement `verify-pin.tsx` (6-digit numeric keypad with hidden digits; on `PinWrongError`: show "X tentativas restantes" and allow retry; on `PinBackoffActiveError`: show "bloqueado por Y minutos" with input disabled; desist action exits without consuming an attempt; no back gesture; no "cancelar" text) in src/app/verify-pin.tsx
+- [X] T048 [US2] Implement `VerifyPinUseCase` (calls `IPinLock.getStatus()` to check lock state before attempting; calls `IPinLock.verify(pin)` when unlocked; surfaces `PinWrongError` and `PinBackoffActiveError`; desist path returns cancelled result without calling `verify`) in src/modules/access/app/verify_pin_usecase.ts
+- [X] T049 [P] [US2] Implement `VerifyPinViewModel` (maps `PinWrongError` → `{ attemptsRemaining }`; maps `PinBackoffActiveError` → `{ remainingMs: lockedUntilMs - clock.nowMs() }`) in src/modules/access/app/verify_pin_viewmodel.ts
+- [X] T050 [US2] Implement `VerifyPinController` in src/modules/access/app/verify_pin_controller.ts
+- [X] T051 [US2] Implement `VerifyPinPresenter` (composition root: injects `PinLockMock` + `ClockMock` for `Stage.Test`; `PinLockConcrete` + `ClockConcrete` for all other stages) in src/modules/access/app/verify_pin_presenter.ts
+- [X] T052 [US2] Implement `verify-pin.tsx` (6-digit numeric keypad with hidden digits; on `PinWrongError`: show "X tentativas restantes" and allow retry; on `PinBackoffActiveError`: show "bloqueado por Y minutos" with input disabled; desist action exits without consuming an attempt; no back gesture; no "cancelar" text) in src/app/verify-pin.tsx
 
 **Checkpoint**: User Story 2 complete — verify-pin screen callable; lockout policy enforced and persistent; D2/D3/D4 can now navigate to this screen as their PIN gate
 
@@ -162,8 +162,8 @@ is requested; identify next action in under 10 seconds without help.
 
 Note: The home screen is implemented in Phase 3 (T043). This phase finalizes and audits it.
 
-- [ ] T053 [P] [US3] Review and finalize src/app/index.tsx: confirm device-binding warning (FR-008) appears exactly once in identity-no-credential state; confirm no sensitive data is visible (FR-030); confirm term "cancelar" is absent (FR-032)
-- [ ] T054 [P] [US3] Audit all user-facing strings in src/app/ and src/modules/: every error message names cause + next action (FR-033); no technical vocabulary in any string (constitution §VI + FR-032)
+- [X] T053 [P] [US3] Review and finalize src/app/index.tsx: confirm device-binding warning (FR-008) appears exactly once in identity-no-credential state; confirm no sensitive data is visible (FR-030); confirm term "cancelar" is absent (FR-032)
+- [X] T054 [P] [US3] Audit all user-facing strings in src/app/ and src/modules/: every error message names cause + next action (FR-033); no technical vocabulary in any string (constitution §VI + FR-032)
 
 ---
 
@@ -171,10 +171,10 @@ Note: The home screen is implemented in Phase 3 (T043). This phase finalizes and
 
 **Purpose**: Final quality verification across all delivered layers
 
-- [ ] T055 [P] Verify no `expo-*` import exists outside `src/shared/clients/` across all of `src/modules/` and `src/shared/domain/` (constitution Principle I — Iron Rule)
-- [ ] T056 [P] Verify `seed` field does not appear in any result type, viewmodel output, or entry adapter prop in `src/shared/result/`, `src/modules/*/app/*_viewmodel.ts`, and `src/app/` (constitution Principle V — seed barrier)
-- [ ] T057 [P] Verify WCAG 2.1 AA on PIN entry screens: contrast ratios ≥ 4.5:1, tap areas ≥ 44×44pt, correct screen-reader ordering in src/app/onboarding/define-pin.tsx and src/app/verify-pin.tsx
-- [ ] T058 Run full test suite with `EXPO_PUBLIC_STAGE=test npx tsx --test 'tests/**/*.test.ts'`; confirm all 58 test scenarios pass with zero skipped assertions
+- [X] T055 [P] Verify no `expo-*` import exists outside `src/shared/clients/` across all of `src/modules/` and `src/shared/domain/` (constitution Principle I — Iron Rule)
+- [X] T056 [P] Verify `seed` field does not appear in any result type, viewmodel output, or entry adapter prop in `src/shared/result/`, `src/modules/*/app/*_viewmodel.ts`, and `src/app/` (constitution Principle V — seed barrier)
+- [X] T057 [P] Verify WCAG 2.1 AA on PIN entry screens: contrast ratios ≥ 4.5:1, tap areas ≥ 44×44pt, correct screen-reader ordering in src/app/onboarding/define-pin.tsx and src/app/verify-pin.tsx
+- [X] T058 Run full test suite with `EXPO_PUBLIC_STAGE=test npx tsx --test 'tests/**/*.test.ts'`; confirm all 58 test scenarios pass with zero skipped assertions
 
 ---
 
