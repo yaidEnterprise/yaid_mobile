@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Text, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { CheckIdentityPresenter } from '../modules/identity/app/check_identity_presenter';
+import { CheckIdentityPresenter } from '../src/modules/identity/app/check_identity_presenter';
 
 type HomeState = 'loading' | 'no-identity' | 'identity-no-credential';
 

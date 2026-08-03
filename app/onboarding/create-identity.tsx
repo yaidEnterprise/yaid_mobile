@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Text, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { CreateIdentityPresenter } from '../../modules/identity/app/create_identity_presenter';
+import { CreateIdentityPresenter } from '../../src/modules/identity/app/create_identity_presenter';
 
 export default function CreateIdentityScreen() {
   const router = useRouter();

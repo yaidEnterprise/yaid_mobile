@@ -1,17 +1,26 @@
 import { useState } from 'react';
-import { Text, TextInput, StyleSheet } from 'react-native';
+import { Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { DefinePinPresenter } from '../../modules/access/app/define_pin_presenter';
+import { Stack, useRouter } from 'expo-router';
+import { VerifyPinPresenter } from '../src/modules/access/app/verify_pin_presenter';
 
-type Step = 'enter' | 'confirm';
+function formatRemainingMinutes(remainingMs: number): number {
+  return Math.max(1, Math.ceil(remainingMs / 60_000));
+}
 
-export default function DefinePinScreen() {
+export default function VerifyPinScreen() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>('enter');
-  const [firstPin, setFirstPin] = useState('');
   const [input, setInput] = useState('');
   const [message, setMessage] = useState<string | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
+
+  function leave() {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace('/');
+  }
 
   async function handleChange(rawText: string) {
     const digits = rawText.replace(/[^0-9]/g, '').slice(0, 6);
@@ -21,38 +30,34 @@ export default function DefinePinScreen() {
       return;
     }
 
-    if (step === 'enter') {
-      setFirstPin(digits);
-      setInput('');
-      setMessage(null);
-      setStep('confirm');
-      return;
-    }
-
-    const controller = DefinePinPresenter();
-    const result = await controller.execute({ pin: firstPin, confirmation: digits });
+    const controller = VerifyPinPresenter();
+    const result = await controller.execute({ pin: digits });
 
     if (result.kind === 'success') {
-      router.push('/onboarding/create-identity');
+      leave();
       return;
     }
 
-    if (result.kind === 'mismatch') {
+    if (result.kind === 'wrong') {
       setInput('');
-      setMessage(result.message);
+      setMessage(`Senha incorreta. Restam ${result.attemptsRemaining} tentativas — tente novamente.`);
       return;
     }
 
-    setFirstPin('');
-    setInput('');
-    setStep('enter');
-    setMessage(result.message);
+    if (result.kind === 'locked') {
+      setInput('');
+      setIsLocked(true);
+      setMessage(
+        `Muitas tentativas incorretas. Aguarde ${formatRemainingMinutes(result.remainingMs)} minutos para tentar novamente.`,
+      );
+    }
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      <Stack.Screen options={{ gestureEnabled: false, headerShown: false }} />
       <Text style={styles.title} accessibilityRole="header">
-        {step === 'enter' ? 'Crie sua senha de 6 dígitos' : 'Digite novamente para confirmar'}
+        Digite sua senha
       </Text>
       <TextInput
         style={styles.input}
@@ -61,6 +66,7 @@ export default function DefinePinScreen() {
         keyboardType="number-pad"
         secureTextEntry
         maxLength={6}
+        editable={!isLocked}
         autoFocus
         accessibilityLabel="Senha de 6 dígitos"
       />
@@ -69,6 +75,14 @@ export default function DefinePinScreen() {
           {message}
         </Text>
       ) : null}
+      <Pressable
+        style={styles.exitButton}
+        onPress={leave}
+        accessibilityRole="button"
+        accessibilityLabel="Sair"
+      >
+        <Text style={styles.exitButtonText}>Sair</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -103,5 +117,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#B00020',
     textAlign: 'center',
+  },
+  exitButton: {
+    marginTop: 32,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  exitButtonText: {
+    fontSize: 15,
+    color: '#4A4A4A',
   },
 });
