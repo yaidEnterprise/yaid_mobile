@@ -1,17 +1,25 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: (template) → 1.0.0
-Modified principles: N/A (initial authoring from template placeholders)
-Added sections:
-  - Core Principles (7 principles derived from PROJECT-BASELINE.md + ARCHITECTURE.md + UX.md)
-  - Build & Stage Configuration
-  - UX Invariants
-  - Governance
+Version change: 1.0.0 → 2.0.0
+Modified principles:
+  - I. Interface-Driven Development — The Iron Rule: added a narrow, explicit exception for
+    pure, deterministic, no-I/O library wrappers (e.g. Ed25519 signing/key derivation), which
+    now live as plain clients in shared/clients/ instead of interface+concrete+fake. This
+    relaxes a previously non-negotiable boundary ("cryptography" as an always-a-port category),
+    hence MAJOR. Motivated by code review on commit 50189a3: SignerConcrete and SignerMock were
+    byte-for-byte identical, proving the port produced zero test isolation for this specific
+    case.
+  - III. Strict Layer Separation and Dependency Direction: stage-branching responsibility moved
+    from "presenter only" to "environments.ts only, exposed as per-port factories that the
+    presenter calls." Presenter no longer branches on stage itself. This also relaxes a
+    previously non-negotiable boundary, hence MAJOR.
+Added sections: none (amendment to existing principles only)
 Templates requiring updates:
   - .specify/templates/plan-template.md ✅ (Constitution Check section is generic and compatible)
   - .specify/templates/spec-template.md ✅ (no constitution-specific sections; compatible)
   - .specify/templates/tasks-template.md ✅ (task structure is compatible; TDD ordering aligns)
+  - docs/ARCHITECTURE.md ⚠ amended in the same change (§2.1, §5, §6, §7, §8, §9, §10)
 Deferred TODOs: none
 -->
 
@@ -21,10 +29,10 @@ Deferred TODOs: none
 
 ### I. Interface-Driven Development — The Iron Rule
 
-Every dependency on an external resource (storage, camera, HTTP, clock, randomness,
-cryptography, biometrics) MUST be defined as an interface inside `shared/domain/interfaces/`
-**before** any concrete implementation is written. Concretes live in `shared/infra/`. Fakes
-live alongside concretes, one per interface.
+Every dependency on an external resource with I/O, non-determinism, or environmental behaviour
+(storage, camera, HTTP, clock, randomness, biometrics) MUST be defined as an interface inside
+`shared/domain/interfaces/` **before** any concrete implementation is written. Concretes live
+in `shared/infra/`. Fakes live alongside concretes, one per interface.
 
 - No use case, controller, or domain entity MAY import an SDK, `expo-*` package, `fetch`,
   or any platform-specific module directly.
@@ -33,9 +41,24 @@ live alongside concretes, one per interface.
   have its own test verifying that contract.
 - Mocking a module (e.g., jest.mock) is PROHIBITED in place of a fake.
 
+**Exception — pure, deterministic, local library calls.** A library wrapper with no I/O, no
+environmental input, and the same output for the same input every time (e.g. Ed25519 signing
+and public-key derivation via `@noble/ed25519`) does NOT require an interface/concrete/fake
+triple. It lives as a plain wrapper in `shared/clients/` (e.g. `Ed25519Client`), imported and
+called directly wherever needed — including from a use case — and is covered by its own direct
+unit test rather than a fake. Determinism for fixed-vector tests is achieved by controlling the
+wrapper's *inputs* (e.g. a fixed seed from the `Randomness` fake), not by mocking the library
+itself. This exception is narrow: the moment a "concrete vs. fake" pair would need to differ in
+behaviour for testing purposes — any I/O, timing, or environment dependence — the dependency
+reverts to a full port under the rule above, without exception.
+
 **Rationale**: This is the load-bearing constraint of the architecture. Without it, use cases
 cannot run in Node without a simulator, TDD becomes impossible to enforce, and every SDK
 upgrade risks silent regression. The Iron Rule is what makes the test suite a reliable gate.
+The exception exists because a port whose concrete and fake are identical (proven on
+`SignerConcrete`/`SignerMock`, byte-for-byte identical prior to this amendment) buys no
+isolation and no test value — it only adds indirection. Requiring a port stays mandatory for
+anything that actually varies between real and test execution.
 
 ### II. Test-First Development (NON-NEGOTIABLE)
 
@@ -74,9 +97,11 @@ immediate downstream neighbour. Dependency direction is one-way.
 Permitted:
   entry adapter  →  presenter  →  controller  →  use case  →  domain
   infra          →  domain (interfaces only)
+  environments   →  infra (concretes and fakes, to build its stage-driven factories)
   presenter      →  environments, infra, clients
   controller     →  result types, domain errors
-  use case       →  injected ports only
+  use case       →  injected ports only, or a deterministic client under shared/clients/
+                     (Iron Rule exception — Principle I)
 
 Prohibited (hard failures in review):
   domain         →  infra, React, Expo, any framework
@@ -85,14 +110,18 @@ Prohibited (hard failures in review):
   entry adapter  →  storage, SDK, env vars, business logic
   module         →  internals of another module
   shared/        →  any seventh top-level folder
+  any layer      →  branching on `environments.stage` outside `environments.ts` itself
 ```
 
 `shared/` has exactly five top-level entries: `domain/`, `infra/`, `result/`, `clients/`,
 `environments.ts`. No new top-level entry may be added.
 
 **Presenter = composition root only.** It is not MVP's Presenter. It does not hold state.
-It is a function called per action that reads `environments.ts`, instantiates concretes or
-fakes, wires them into the use case and controller, and returns the controller.
+It is a function called per action that calls the stage-driven factories exposed by
+`environments.ts` (e.g. `createClock`, `createPinLock`, `createRandomness`,
+`createIdentityRepository`), wires the returned instances into the use case and controller,
+and returns the controller. The presenter itself never branches on stage — that selection is
+centralized in `environments.ts` (see "Build and Stage Configuration" below).
 
 **Navigation is not domain.** Controllers return typed results; entry adapters decide routes.
 No use case or controller knows a route name.
@@ -214,7 +243,12 @@ in `shared/environments.ts` — the **only** file permitted to read environment 
 | `prod` | Production | Shipping build |
 
 `test` ALWAYS resolves every port to its fake. Any other stage ALWAYS resolves to the
-concrete. No conditional logic related to stage may appear outside the presenter.
+concrete. `shared/environments.ts` is the **single** place that branches on stage: it exposes
+one factory function per port (`createClock`, `createPinLock`, `createRandomness`,
+`createIdentityRepository`, and so on as new ports are added), each internally selecting fake
+vs. concrete. Presenters call these factories and wire the results — they never branch on
+stage themselves. No conditional logic related to stage may appear anywhere else (use case,
+controller, viewmodel, entry adapter, infra, or the presenter itself).
 
 **Development build is mandatory.** Expo Go cannot handle Universal Links / App Links, which
 are the entry point for the entire authorisation domain (D3). There is no alternative.
@@ -272,4 +306,4 @@ a tool default, a framework convention, or a team habit, the constitution wins.
 begins and again after Phase 1 design. Complexity violations require explicit justification
 in the Complexity Tracking table.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-02 | **Last Amended**: 2026-08-02
+**Version**: 2.0.0 | **Ratified**: 2026-08-02 | **Last Amended**: 2026-08-04

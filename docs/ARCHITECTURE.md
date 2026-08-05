@@ -58,6 +58,25 @@ um SDK, a interface existe primeiro.
 **Relógio e aleatoriedade são portas.** Não é preciosismo: sem elas a derivação `seed → DID` não é
 testável contra vetores fixos, e a expiração de solicitação não é verificável.
 
+### 2.1.1 Exceção: wrapper puro e determinístico de biblioteca
+
+Uma chamada de biblioteca **sem I/O, sem entrada ambiental e com a mesma saída para a mesma
+entrada** não vira porta. Fica como wrapper simples em `shared/clients/`, chamado direto de onde
+for preciso — inclusive de um caso de uso — com teste unitário próprio.
+
+O caso concreto: `Signer` (Ed25519) foi porta até esta revisão, com `SignerConcrete` e
+`SignerMock` **byte a byte idênticos** — ambos chamavam `@noble/ed25519` diretamente, sem
+substituir comportamento algum. O fake não provava isolamento, só adicionava indireção. A
+determinação para os vetores fixos (`seed → chave pública → DID`) vem de controlar a **entrada**
+(a seed fixa fornecida pelo fake de `Randomness`), não de dublar a assinatura em si. Por isso
+`Signer` deixou de ser porta e virou `Ed25519Client` em `shared/clients/`.
+
+A exceção é estreita: no instante em que concreto e fake precisariam divergir de comportamento
+para servir ao teste — qualquer I/O, tempo ou dependência de ambiente — a dependência volta a ser
+porta inteira, sem exceção. `Clock`, `Randomness`, `PinLock` e `IdentityRepository` permanecem
+portas porque seus fakes genuinamente divergem do concreto (hora controlável, bytes fixos,
+armazenamento em memória vs. seguro do SO).
+
 ### 2.2 TDD é obrigatório
 
 Toda funcionalidade nasce como teste, e a implementação existe para fazer o teste passar. A árvore de
@@ -170,16 +189,18 @@ src/
     │   ├── errors/           erros de domínio, sem código de protocolo
     │   └── interfaces/
     │       ├── repositories/ identity_repository.ts · credential_repository.ts
-    │       └── providers/    signer.ts · clock.ts · randomness.ts · pin_lock.ts
+    │       └── providers/    clock.ts · randomness.ts · pin_lock.ts
     │                         document_capture.ts · image_processor.ts · yaid_api.ts
+    │                         (Signer NÃO é porta — ver §2.1.1)
     ├── infra/
     │   ├── dto/              DTOs da API YaID, mappers, parser do deep link
     │   ├── repositories/     implementações concretas
     │   ├── providers/        implementações concretas
     │   └── mock/             um fake por interface
     ├── result/               resultado tipado que o controller devolve à tela
-    ├── clients/              envoltórios finos sobre SDK real
-    └── environments.ts       config validada, um lugar só
+    ├── clients/              envoltórios finos sobre SDK real — inclui wrappers puros e
+    │                         determinísticos como ed25519_client.ts (ver §2.1.1)
+    └── environments.ts       config validada + fábricas por estágio, um lugar só
 
 tests/                                      ← espelha src/ 1:1
 ├── modules/
@@ -196,7 +217,7 @@ tests/                                      ← espelha src/ 1:1
 | # | Papel | Onde vive | Responsabilidade | Nunca faz |
 |---|---|---|---|---|
 | 1 | **Entry Adapter** | `src/app/**` | Recebe a ação (toque, deep link, ciclo de vida), chama o presenter, converte o resultado em navegação e renderização | Lógica de negócio, acesso a armazenamento, leitura de env, chamada de SDK |
-| 2 | **Presenter** | `modules/*/app/*_presenter.ts` | Único lugar que escolhe e monta concretos, por estágio | Lógica de negócio, validação, formatação |
+| 2 | **Presenter** | `modules/*/app/*_presenter.ts` | Chama as fábricas de `environments.ts` e monta caso de uso + controller a partir do que elas devolvem | Lógica de negócio, validação, formatação, decidir concreto vs. fake por estágio |
 | 3 | **Controller** | `modules/*/app/*_controller.ts` | Valida a forma da entrada, monta o DTO, chama o caso de uso, mapeia erro de domínio para resultado tipado | Lógica de negócio, instanciar concretos |
 | 4 | **Use Case** | `modules/*/app/*_usecase.ts` | A regra de aplicação. Orquestra entidades e portas | Importar React, Expo, `fetch`, rota, ler env |
 | 5 | **ViewModel** | `modules/*/app/*_viewmodel.ts` | Molda a saída para a tela e **remove campo sensível** | Lógica de negócio, acesso a infra |
@@ -204,7 +225,7 @@ tests/                                      ← espelha src/ 1:1
 | 7 | **Infra** | `shared/infra/` | Implementações concretas, DTOs, mappers e **fakes** | Lógica de negócio |
 | 8 | **Clients** | `shared/clients/` | Envoltório fino sobre serviço ou SDK real | Ser chamado direto de um caso de uso ou controller |
 | 9 | **Result** | `shared/result/` | Tipos de sucesso e falha que o controller devolve, cada falha com mensagem de contexto | Lógica de negócio, import de framework |
-| 10 | **Environments** | `shared/environments.ts` | Lê e valida estágio e endpoints, num lugar só | Ser importado por domínio ou caso de uso |
+| 10 | **Environments** | `shared/environments.ts` | Lê e valida estágio e endpoints; único lugar que decide concreto vs. fake por porta, exposto como fábricas (`createClock`, `createPinLock`, ...) | Lógica de negócio, ser importado por domínio ou caso de uso |
 
 ### 6.1 Sobre o papel 9
 
@@ -241,9 +262,10 @@ declarativo do React e incompatível com T7.
 Permitido:
   entry adapter  →  presenter  →  controller  →  use case  →  domain
   infra          →  domain (interfaces)
+  environments   →  infra (concretos e fakes, para montar as fábricas por estágio)
   presenter      →  environments, infra, clients
   controller     →  result, erros de domínio
-  use case       →  portas injetadas, apenas
+  use case       →  portas injetadas, ou client puro e determinístico (exceção §2.1.1)
 
 Proibido:
   domain         →  infra
@@ -254,6 +276,7 @@ Proibido:
   qualquer coisa →  import de `expo-*` fora de shared/clients
   módulo         →  internals de outro módulo
   shared/        →  qualquer sexta pasta de topo
+  qualquer coisa →  condicional sobre `environments.stage` fora de environments.ts
 ```
 
 ---
@@ -265,9 +288,9 @@ O análogo mobile do fluxo de requisição do backend. A pessoa toca em "Autoriz
 ```
  1. A tela (entry adapter) captura o toque
  2. Chama o presenter do módulo
- 3. O presenter lê environments
- 4. O presenter instancia os concretos conforme o estágio
- 5. O presenter monta caso de uso e controller, e devolve o controller
+ 3. O presenter chama as fábricas de `environments.ts`
+ 4. `environments.ts` resolve concreto ou fake conforme o estágio, dentro da fábrica
+ 5. O presenter monta caso de uso e controller com o que a fábrica devolveu, e devolve o controller
  6. A tela entrega a entrada ao controller
  7. O controller valida a forma da entrada
  8. O controller monta o DTO de entrada
@@ -293,8 +316,10 @@ guarda o resultado para renderizar. Nada além disso.
 
 ## 9. Wiring por estágio
 
-O presenter escolhe implementações pelo **estágio de execução**, nunca espalhando condicionais pela
-codebase.
+`environments.ts` escolhe implementações pelo **estágio de execução**, num único lugar — nunca
+espalhando condicionais pela codebase. O presenter apenas chama a fábrica de cada porta
+(`createClock`, `createPinLock`, `createRandomness`, `createIdentityRepository`, ...); ele nunca
+lê `environments.stage` nem decide entre concreto e fake.
 
 | Estágio | Infraestrutura |
 |---|---|
@@ -319,13 +344,15 @@ fake; qualquer outro estágio resolve para o concreto.
 |---|---|---|
 | `IdentityRepository` | armazenamento seguro do SO | em memória |
 | `CredentialRepository` | arquivo cifrado no sandbox | em memória |
-| `Signer` | Ed25519 | chave fixa de teste |
 | `Randomness` | CSPRNG do sistema | sequência determinística |
 | `Clock` | relógio do sistema | hora controlada pelo teste |
 | `DocumentCapture` | câmera | imagem de fixture |
 | `ImageProcessor` | redimensionamento e compressão | passthrough |
 | `PinLock` | armazenamento seguro e contagem de tentativas | em memória |
 | `YaIDApi` | HTTP para as seis rotas | respostas roteirizadas |
+
+`Signer` **não está nesta tabela** — é a exceção documentada em §2.1.1: `Ed25519Client` em
+`shared/clients/`, sem porta nem fake, porque concreto e fake seriam idênticos.
 
 **Fakes são implementações em memória, não mocks de módulo.** Mockar o módulo de armazenamento seguro
 prova que uma função foi chamada; um cofre falso prova que a seed foi realmente guardada e
@@ -510,6 +537,10 @@ São os pontos onde o erro é silencioso: assinatura válida localmente, inváli
 - Mock de módulo Expo no lugar de fake da porta
 - Chamar o desafio antes da decisão da pessoa
 - SDK de telemetria, analytics ou crash reporting
+- Criar porta/fake para uma chamada pura, determinística e sem I/O de biblioteca (ver exceção
+  em §2.1.1) — concreto e fake idênticos não isolam nada, só adicionam indireção
+- Condicional sobre `environments.stage` fora de `shared/environments.ts`, inclusive no
+  presenter
 
 ---
 
