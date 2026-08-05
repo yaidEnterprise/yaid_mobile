@@ -1,7 +1,7 @@
 import { IIdentityRepository } from '../../domain/interfaces/repositories/identity_repository';
-import { ISigner } from '../../domain/interfaces/providers/signer';
 import { createIdentity, Identity } from '../../domain/entities/identity';
 import { SecureStoreClient } from '../../clients/secure_store_client';
+import { Ed25519Client } from '../../clients/ed25519_client';
 
 const SEED_KEY = 'yaid.identity.seed';
 
@@ -60,8 +60,6 @@ function toHexLower(bytes: Uint8Array): string {
 }
 
 export class IdentityRepositoryConcrete implements IIdentityRepository {
-  constructor(private readonly signer: ISigner) {}
-
   async save(identity: Identity): Promise<void> {
     await SecureStoreClient.setItem(SEED_KEY, toBase64Url(identity.seed));
   }
@@ -72,7 +70,7 @@ export class IdentityRepositoryConcrete implements IIdentityRepository {
       return null;
     }
     const seed = fromBase64Url(stored);
-    const publicKey = this.signer.getPublicKey(seed);
+    const publicKey = Ed25519Client.getPublicKey(seed);
     const did = `did:yaid:user:${toHexLower(publicKey)}`;
     return createIdentity({ seed, publicKey, did });
   }

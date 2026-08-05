@@ -2,7 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CreateIdentityUseCase } from '../../../../src/modules/identity/app/create_identity_usecase';
 import { IdentityRepositoryMock } from '../../../../src/shared/infra/repositories/mock/identity_repository_mock';
-import { SignerMock } from '../../../../src/shared/infra/providers/mock/signer_mock';
 import { RandomnessMock } from '../../../../src/shared/infra/providers/mock/randomness_mock';
 import { createIdentity } from '../../../../src/shared/domain/entities/identity';
 import { IdentityCreationFailedError } from '../../../../src/shared/domain/errors/identity_errors';
@@ -15,10 +14,9 @@ const FIXED_VECTOR_DID = `did:yaid:user:${FIXED_VECTOR_PUBLIC_KEY_HEX}`;
 
 function makeUseCase() {
   const identityRepository = new IdentityRepositoryMock();
-  const signer = new SignerMock();
   const randomness = new RandomnessMock();
   return {
-    useCase: new CreateIdentityUseCase(identityRepository, signer, randomness),
+    useCase: new CreateIdentityUseCase(identityRepository, randomness),
     identityRepository,
   };
 }
@@ -62,6 +60,6 @@ test('a repository save failure surfaces as IdentityCreationFailedError', async 
     },
     async clear(): Promise<void> {},
   };
-  const useCase = new CreateIdentityUseCase(failingRepository, new SignerMock(), new RandomnessMock());
+  const useCase = new CreateIdentityUseCase(failingRepository, new RandomnessMock());
   await assert.rejects(() => useCase.execute({}), IdentityCreationFailedError);
 });

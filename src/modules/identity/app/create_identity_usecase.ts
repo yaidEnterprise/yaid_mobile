@@ -1,8 +1,8 @@
 import { IIdentityRepository } from '../../../shared/domain/interfaces/repositories/identity_repository';
-import { ISigner } from '../../../shared/domain/interfaces/providers/signer';
 import { IRandomness } from '../../../shared/domain/interfaces/providers/randomness';
 import { createIdentity, Identity } from '../../../shared/domain/entities/identity';
 import { IdentityCreationFailedError } from '../../../shared/domain/errors/identity_errors';
+import { Ed25519Client } from '../../../shared/clients/ed25519_client';
 
 export type CreateIdentityInput = Record<string, never>;
 
@@ -15,7 +15,6 @@ function toHexLower(bytes: Uint8Array): string {
 export class CreateIdentityUseCase {
   constructor(
     private readonly identityRepository: IIdentityRepository,
-    private readonly signer: ISigner,
     private readonly randomness: IRandomness,
   ) {}
 
@@ -23,7 +22,7 @@ export class CreateIdentityUseCase {
     await this.identityRepository.clear();
 
     const seed = this.randomness.getBytes(32);
-    const publicKey = this.signer.getPublicKey(seed);
+    const publicKey = Ed25519Client.getPublicKey(seed);
     const did = `did:yaid:user:${toHexLower(publicKey)}`;
     const identity: Identity = createIdentity({ seed, publicKey, did });
 
