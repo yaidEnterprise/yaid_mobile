@@ -98,4 +98,11 @@ export class PinLockMock implements IPinLock {
   private isCurrentlyLocked(): boolean {
     return this.lockedUntilMs !== null && this.clock.nowMs() < this.lockedUntilMs;
   }
+
+  async reset(): Promise<void> {
+    this.pinValue = null;
+    this.attemptCount = 0;
+    this.lockoutCount = 0;
+    this.lockedUntilMs = null;
+  }
 }

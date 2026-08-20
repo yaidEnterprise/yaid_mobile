@@ -89,4 +89,9 @@ export class PinLockConcrete implements IPinLock {
   private async persistState(state: PinState): Promise<void> {
     await SecureStoreClient.setItem(PIN_STATE_KEY, JSON.stringify(state));
   }
+
+  async reset(): Promise<void> {
+    await SecureStoreClient.deleteItem(PIN_VALUE_KEY);
+    await SecureStoreClient.deleteItem(PIN_STATE_KEY);
+  }
 }
