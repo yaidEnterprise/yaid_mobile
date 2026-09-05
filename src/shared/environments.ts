@@ -3,14 +3,26 @@ import { IClock } from './domain/interfaces/providers/clock';
 import { IPinLock } from './domain/interfaces/providers/pin_lock';
 import { IRandomness } from './domain/interfaces/providers/randomness';
 import { IIdentityRepository } from './domain/interfaces/repositories/identity_repository';
-import { ClockConcrete } from './infra/providers/clock_concrete';
+import { ICredentialRepository } from './domain/interfaces/repositories/credential_repository';
+import { IDocumentCapture } from './domain/interfaces/providers/document_capture';
+import { IImageProcessor } from './domain/interfaces/providers/image_processor';
+import { IYaIDApi } from './domain/interfaces/providers/yaid_api';
 import { ClockMock } from './infra/providers/mock/clock_mock';
-import { PinLockConcrete } from './infra/providers/pin_lock_concrete';
 import { PinLockMock } from './infra/providers/mock/pin_lock_mock';
-import { RandomnessConcrete } from './infra/providers/randomness_concrete';
 import { RandomnessMock } from './infra/providers/mock/randomness_mock';
-import { IdentityRepositoryConcrete } from './infra/repositories/identity_repository_concrete';
 import { IdentityRepositoryMock } from './infra/repositories/mock/identity_repository_mock';
+import { CredentialRepositoryMock } from './infra/repositories/mock/credential_repository_mock';
+import { DocumentCaptureMock } from './infra/providers/mock/document_capture_mock';
+import { ImageProcessorMock } from './infra/providers/mock/image_processor_mock';
+import { YaIDApiMock } from './infra/providers/mock/yaid_api_mock';
+
+// Concrete providers wrap Expo/React Native native modules, whose source
+// (e.g. node_modules/react-native/index.js) uses Flow syntax that only the
+// Metro/Babel pipeline can parse. A static top-level import here would force
+// every consumer of this file — including plain-Node tooling like the
+// node:test runner, which never takes the concrete branch — to transform
+// that graph too. Requiring them lazily, only inside the non-test branch,
+// keeps that graph untouched outside of the Metro bundler that can handle it.
 
 function resolveStage(): Stage {
   const raw = process.env.EXPO_PUBLIC_STAGE;
@@ -22,8 +34,19 @@ function resolveStage(): Stage {
   );
 }
 
+function resolveYaIDApiHost(): string {
+  const raw = process.env.EXPO_PUBLIC_YAID_API_HOST;
+  if (!raw || !/^https?:\/\//.test(raw)) {
+    throw new Error(
+      `Invalid or missing EXPO_PUBLIC_YAID_API_HOST: "${raw}". Expected a full URL, e.g. https://api.example.com or http://localhost:3000.`,
+    );
+  }
+  return raw;
+}
+
 export const environments = {
   stage: resolveStage(),
+  yaIDApiHost: resolveYaIDApiHost(),
 };
 
 function isTestStage(): boolean {
@@ -31,17 +54,65 @@ function isTestStage(): boolean {
 }
 
 export function createClock(): IClock {
-  return isTestStage() ? new ClockMock() : new ClockConcrete();
+  if (isTestStage()) {
+    return new ClockMock();
+  }
+  const { ClockConcrete } = require('./infra/providers/clock_concrete');
+  return new ClockConcrete();
 }
 
 export function createPinLock(clock: IClock): IPinLock {
-  return isTestStage() ? new PinLockMock(clock) : new PinLockConcrete(clock);
+  if (isTestStage()) {
+    return new PinLockMock(clock);
+  }
+  const { PinLockConcrete } = require('./infra/providers/pin_lock_concrete');
+  return new PinLockConcrete(clock);
 }
 
 export function createRandomness(): IRandomness {
-  return isTestStage() ? new RandomnessMock() : new RandomnessConcrete();
+  if (isTestStage()) {
+    return new RandomnessMock();
+  }
+  const { RandomnessConcrete } = require('./infra/providers/randomness_concrete');
+  return new RandomnessConcrete();
 }
 
 export function createIdentityRepository(): IIdentityRepository {
-  return isTestStage() ? new IdentityRepositoryMock() : new IdentityRepositoryConcrete();
+  if (isTestStage()) {
+    return new IdentityRepositoryMock();
+  }
+  const { IdentityRepositoryConcrete } = require('./infra/repositories/identity_repository_concrete');
+  return new IdentityRepositoryConcrete();
+}
+
+export function createCredentialRepository(): ICredentialRepository {
+  if (isTestStage()) {
+    return new CredentialRepositoryMock();
+  }
+  const { CredentialRepositoryConcrete } = require('./infra/repositories/credential_repository_concrete');
+  return new CredentialRepositoryConcrete();
+}
+
+export function createDocumentCapture(): IDocumentCapture {
+  if (isTestStage()) {
+    return new DocumentCaptureMock();
+  }
+  const { DocumentCaptureConcrete } = require('./infra/providers/document_capture_concrete');
+  return new DocumentCaptureConcrete();
+}
+
+export function createImageProcessor(): IImageProcessor {
+  if (isTestStage()) {
+    return new ImageProcessorMock();
+  }
+  const { ImageProcessorConcrete } = require('./infra/providers/image_processor_concrete');
+  return new ImageProcessorConcrete();
+}
+
+export function createYaIDApi(): IYaIDApi {
+  if (isTestStage()) {
+    return new YaIDApiMock();
+  }
+  const { YaIDApiConcrete } = require('./infra/providers/yaid_api_concrete');
+  return new YaIDApiConcrete();
 }

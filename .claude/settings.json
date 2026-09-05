@@ -35,7 +35,14 @@
       "Bash(echo \"tsc exit: $?\")",
       "Bash(npx expo *)",
       "Bash(npx expo-doctor *)",
-      "Bash(EXPO_PUBLIC_STAGE=dev npx expo export --platform ios)"
+      "Bash(EXPO_PUBLIC_STAGE=dev npx expo export --platform ios)",
+      "Bash(git mv *)",
+      "Bash(git rm *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(EXPO_PUBLIC_STAGE=test npm test)",
+      "Bash(git -C ~/.claude/skills status)",
+      "Bash(git -C ~/.claude/plugins status)",
+      "Bash(git -C ~/.claude status)"
     ],
     "additionalDirectories": [
       "/Users/victordegasperi/Documents/repositorios-git/yaid_mobile/specs/002-comprovacao",

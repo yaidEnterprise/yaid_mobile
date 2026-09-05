@@ -4,8 +4,9 @@
 > rotas, métodos, headers, formatos de corpo e tipos de retorno. Cada afirmação aqui foi verificada
 > contra o código em execução, com referência ao arquivo e linha de origem.
 >
-> **Estado de referência:** codebase em 2026-07-28, antes das Stories 5.7, 5.8 e do Epic 9.
-> A §9 lista o que muda quando essas stories forem entregues.
+> **Estado de referência:** codebase em 2026-08-11, com as Stories 5.7, 5.8 e o Epic 9 já
+> mesclados. O contrato abaixo descreve o formato VC-JWT como o formato atual — não há mais um
+> formato JSON-LD em produção.
 
 ---
 
@@ -102,7 +103,7 @@ codificação (Ed25519, base64url sem padding).
 
 | Rota | Payload assinado | Origem |
 |---|---|---|
-| `POST /api/credentials/issue` | `` `${documentImage}:${proofType}` `` | [issue_credential_usecase.ts:83](../src/modules/credential/app/issue_credential_usecase.ts#L83) |
+| `POST /api/credentials/issue` | `` `${documentImage}` `` — só a imagem, sem `proofType`, sem separador | [issue_credential_usecase.ts:67](../src/modules/credential/app/issue_credential_usecase.ts#L67) |
 | `POST /api/credentials/revoke` | `` `${vcId}` `` — sem separador, sem prefixo | [revoke_credential_usecase.ts:39](../src/modules/credential/app/revoke_credential_usecase.ts#L39) |
 
 `documentImage` entra no payload **na íntegra** — é a mesma string base64 enviada no corpo. Assinar
@@ -114,16 +115,17 @@ um hash da imagem, ou a imagem antes da compressão, produz `401`.
 
 ### 4.1 `POST /api/credentials/issue`
 
-Comprovação. Registra o DID on-chain e devolve a credencial.
+Comprovação. Registra o DID on-chain e devolve a credencial — sempre com **ambas** as claims
+(`personhood` e `ageOver18`), independente de qual a pessoa pretende usar depois.
 
 **Auth:** DID · **Content-Type:** `application/json`
 
-**Corpo** ([issue_credential_viewmodel.ts](../src/modules/credential/app/issue_credential_viewmodel.ts)):
+**Corpo** ([issue_credential_viewmodel.ts](../src/modules/credential/app/issue_credential_viewmodel.ts)),
+schema `.strict()` — **não existe mais campo `proofType`**; enviá-lo cai em `400 VALIDATION_ERROR`:
 
 ```jsonc
 {
   "documentImage": "string, base64 puro, sem prefixo data:",
-  "proofType": "personhood" | "ageOver18",   // camelCase nesta rota — ver §8.2
   "bodySignature": "string, base64url"
 }
 ```
@@ -132,35 +134,36 @@ Comprovação. Registra o DID on-chain e devolve a credencial.
 
 | Código | Corpo | Situação |
 |---|---|---|
-| `201` | Objeto VC (§4.1.1) | Sucesso |
+| `201` | VC-JWT compacta, string (§4.1.1) | Sucesso |
 | `401` | `{ "error": "Invalid DID" \| "Invalid signature" }` | DID malformado ou `bodySignature` inválida |
-| `422` | `{ "error": "Document processing failed" }` | OCR falhou, `proofType` desconhecido, **ou holder menor de 18 no ramo `ageOver18`** |
+| `422` | `{ "error": "Document processing failed" }` | OCR falhou ou data de nascimento ilegível |
 | `502` | `{ "error": "Blockchain registration failed" }` | `registerDID` falhou |
 | `400` | `{ "error": { "code": "VALIDATION_ERROR", ... } }` | Corpo fora do schema — **formato de objeto** |
 
-**4.1.1 Formato da VC (hoje)** — objeto JSON, não JWT:
+Não existe mais um caso de `422` para menor de idade. Holder com menos de 18 anos recebe `201`
+normalmente, com a claim `ageOver18: false` na VC.
 
-```jsonc
-{
-  "id": "uuid",
-  "type": ["VerifiableCredential"],
-  "issuer": "did:yaid:issuer:<hex64>",
-  "holder": "did:yaid:user:<hex64>",
-  "issuedAt": "ISO 8601",
-  "claims": { "personhood": true },          // UMA claim só — ver §9
-  "proof": {
-    "type": "Ed25519Signature2020",
-    "created": "ISO 8601",
-    "verificationMethod": "<issuerDid>#key-1",
-    "proofPurpose": "assertionMethod",
-    "signatureValue": "base64url"
+**4.1.1 Formato da VC (hoje)** — VC-JWT compacta (`header.payload.signature`), **string, não
+objeto** ([issue_credential_usecase.ts:136-152](../src/modules/credential/app/issue_credential_usecase.ts#L136-L152)):
+
+- **Header:** `{ "alg": "EdDSA", "typ": "JWT", "kid": "<issuerDid>#key-1" }`
+- **Payload:**
+  ```jsonc
+  {
+    "iss": "did:yaid:issuer:<hex64>",
+    "sub": "did:yaid:user:<hex64>",   // holder
+    "jti": "uuid",                     // id da VC
+    "iat": 1234567890,                 // unix seconds
+    "nbf": 1234567890,                 // igual a iat
+    "vc": { "personhood": true, "ageOver18": true | false }
   }
-}
-```
+  ```
+- **Signature:** Ed25519 (`EdDSA`) sobre `` `${base64url(header)}.${base64url(payload)}` ``.
 
-O app deve **guardar a credencial exatamente como recebida**. A assinatura do issuer cobre
-`JSON.stringify({id, type, issuer, holder, issuedAt, claims})` nessa ordem de chaves; qualquer
-reserialização quebra a verificação posterior.
+As chaves de claim são **sempre** camelCase (`personhood`, `ageOver18`) — vêm de
+`PROOF_TYPE_CLAIM_KEY` em [ProofType.ts](../src/shared/domain/enums/ProofType.ts). O app deve
+**guardar a string da VC-JWT exatamente como recebida**; não há reserialização a preservar porque
+não há objeto — é a string compacta que viaja para `presentations/verify` (§4.4).
 
 ### 4.2 `GET /api/proof-sessions/{sessionToken}`
 
@@ -241,7 +244,7 @@ Envia a apresentação.
 {
   "holder": "did:yaid:user:<hex64>",
   "challenge": "<nonce recebido>",
-  "verifiableCredential": [ /* a VC inteira, exatamente como recebida */ ],
+  "verifiableCredential": [ "<VC-JWT compacta, exatamente como recebida em issue>" ],  // array de 1 string, não de objetos
   "proof": {
     "type": "Ed25519Signature2020",
     "created": "ISO 8601",
@@ -252,19 +255,29 @@ Envia a apresentação.
 }
 ```
 
+`verifiableCredential` é um array de **strings** (VC-JWT compacta), não de objetos JSON-LD — e o
+servidor exige **exatamente um** elemento (Regra 3); mais de um rejeita.
+
 > **A ordem das chaves importa.** O servidor reserializa
 > `JSON.stringify({holder, challenge, verifiableCredential})` **nessa ordem exata**, sem o `proof`,
 > e verifica a assinatura contra o resultado
-> ([:146-150](../src/modules/presentation/app/verify_presentation_usecase.ts#L146-L150)). O app deve
+> ([:156-160](../src/modules/presentation/app/verify_presentation_usecase.ts#L156-L160)). O app deve
 > montar o objeto nessa ordem, assinar, e só então acrescentar o `proof`. Em linguagens cujo
 > serializador JSON não preserva ordem de inserção, isso exige serialização manual.
+
+O servidor decodifica a VC-JWT (header/payload/signature), confere `alg`, `typ`, `kid` e `iss`, e
+então checa que a claim correspondente ao `proofType` da sessão (mapeada via
+`PROOF_TYPE_CLAIM_KEY`) existe e vale exatamente `true` — ausência ou `false` rejeitam
+([verify_presentation_usecase.ts:282-288](../src/modules/presentation/app/verify_presentation_usecase.ts#L282-L288)).
+Isto corresponde às Stories 5.7/5.8 (unificação de claims) e ao Epic 9 (VC-JWT) — já em produção,
+não mais backlog.
 
 **Respostas:**
 
 | Código | Corpo | Situação |
 |---|---|---|
 | `200` | `{ "valid": true }` | Todas as 11 regras passaram |
-| `200` | `{ "valid": false }` | **Qualquer** falha — sessão inválida, assinatura errada, VC revogada, DID não registrado, nonce divergente, challenge expirado |
+| `200` | `{ "valid": false }` | **Qualquer** falha — sessão inválida, assinatura errada, VC-JWT malformada ou revogada, DID não registrado, nonce divergente, challenge expirado, claim do `proofType` ausente ou `false` |
 | `401` | `{ "error": "Missing holder DID" }` | Header ausente |
 
 > **`valid: false` chega com HTTP 200 e sem motivo.** É deliberado: não vaza qual regra falhou. O
@@ -394,21 +407,22 @@ Cinco dos nove itens partem de premissas que o código contradiz.
 | 6 | *"Janela de tolerância do timestamp não documentada"* | **É ±5 minutos**, simétrica, contra o relógio do servidor ([withDIDAuth.ts:31](../src/shared/middlewares/withDIDAuth.ts#L31)). Não estava escrito, mas é determinístico. |
 | 5 | *"`bodySignature` sem timestamp/nonce → replayável"* | **Superestimado.** Reenviar a requisição exige um `X-YaID-Signature` novo sobre `{ts}:{método}:{path}`, e produzi-lo requer a chave privada do holder. Um terceiro que capture o tráfego **não** consegue replay após ±5 min, e dentro da janela precisaria do header original — que não cobre o corpo, mas cujo corpo tem assinatura própria. O resíduo real é o próprio holder poder reenviar o mesmo par `(documentImage, bodySignature)`, o que é inofensivo. Não é bloqueante para o app. |
 
-### 8.2 Item novo, não mapeado: grafia divergente de `proofType`
+### 8.2 Grafia divergente de `proofType` — resolvido para o envio, ainda presente na leitura
 
-O mesmo conceito chega ao app em **duas grafias**, dependendo da rota:
+`POST /api/credentials/issue` **não recebe mais `proofType`** — a rota emite sempre as duas claims
+juntas, então não há mais grafia a escolher no envio (ver §4.1). A divergência de grafia
+remanescente é só entre representação da claim e representação da sessão:
 
-| Rota | Grafia |
+| Onde | Grafia |
 |---|---|
-| `POST /api/credentials/issue` (envio) | `personhood` \| **`ageOver18`** (camelCase) |
-| `GET /api/proof-sessions/{token}` (recebimento) | `personhood` \| **`age_over_18`** (snake_case) |
+| Claim dentro da VC-JWT (`vc.personhood`, `vc.ageOver18`) | camelCase |
+| `GET /api/proof-sessions/{token}` (campo `proofType` recebido) | `personhood` \| **`age_over_18`** (snake_case) |
 
-Não é intercambiável: enviar `age_over_18` na emissão cai no `else` e retorna
-**422 "Document processing failed"** — um erro de documento para o que é erro de contrato. O app
-precisa de conversão explícita entre as duas formas.
-
-Isto está endereçado nas Stories 5.7/5.8 (enum `ProofType` compartilhado), mas até lá o app deve
-tratar as duas grafias como constantes distintas.
+O mapeamento entre as duas formas é centralizado em `PROOF_TYPE_CLAIM_KEY`
+([ProofType.ts](../src/shared/domain/enums/ProofType.ts)) e usado pelo servidor tanto para montar a
+VC quanto para conferir a claim correta em `presentations/verify` (§4.4). O app só precisa dessa
+conversão se quiser **antecipar localmente** se a VC guardada satisfaz o `proofType` da sessão
+antes de montar a VP (recomendado — a falha em `/verify` é terminal, ver §4.4).
 
 ### 8.3 Itens confirmados como lacunas reais
 
@@ -416,44 +430,25 @@ tratar as duas grafias como constantes distintas.
 |---|---|---|
 | 2 | `environment` não exposto | Correto. O viewmodel da sessão não carrega o campo. O app não distingue homologação de produção. |
 | 3 | Challenge devolve só `nonce` | Correto — `{ nonce }` e nada mais. O contexto vem da chamada pública separada, então um app mal construído pode assinar sem exibir nada. |
-| 7 | Formato da VP e do corpo de `/verify` sob JWT | Correto e **bloqueante**: o schema atual exige `vp` como **objeto** (`z.record`). Passar a VP-JWT como string exige mudar o schema para `z.string()`. É alteração na API, não no app. |
+| 7 | Formato da VP e do corpo de `/verify` sob JWT | **Resolvido de forma diferente da proposta.** `vp` continua sendo objeto (`z.record`), não virou string. O que passou a ser JWT foi só o elemento dentro de `verifiableCredential` — cada item do array agora é uma VC-JWT compacta, não um objeto JSON-LD (ver §4.4). A VP em si nunca virou JWT. |
 | 4 | VC sem `exp` | Correto. Nenhum campo de expiração na VC atual. |
 | 8 | Unicidade por documento | Correto. Nada correlaciona documento e DID; o mesmo RG emite credenciais em N aparelhos. |
 
-### 8.4 Sobre a VP-JWT proposta
+### 8.4 Sobre a VP-JWT proposta na spec do app
 
-`aud`, `exp` curto, `nonce` e `jti` são adições sólidas. Dois pontos de atenção:
+A proposta original pedia que a **VP inteira** virasse um JWT, com `aud`, `exp` curto, `nonce` e
+`jti` como claims do token. **Não foi isso que foi implementado.** O que shippou (§4.4) foi mais
+conservador: a VP continua sendo o mesmo objeto JSON de sempre (`holder`, `challenge`,
+`verifiableCredential`, `proof`), e só o item dentro de `verifiableCredential` virou uma VC-JWT
+compacta. `challenge` continua sendo o nonce bruto comparado contra `challenge_nonce_hash`, não um
+claim `nonce` dentro de um JWT — então os dois pontos de atenção abaixo (que valiam para a proposta
+original) hoje não se aplicam, porque a VP nunca ganhou claims próprias:
 
-- **`nonce` deve permanecer no lugar que o servidor lê.** Hoje o servidor busca `vp.challenge` e
-  compara o SHA-256 contra `challenge_nonce_hash`. Movê-lo para um claim `nonce` do JWT exige
-  ajuste correspondente na API — entra no mesmo pacote do item 7.
-- **`exp: iat + 5min` conflita com a janela de 10 min do challenge.** Não é erro, mas cria um
-  terceiro relógio. Vale alinhar em 10 min ou documentar que a VP é o prazo mais curto dos três.
+- ~~`nonce` deve permanecer no lugar que o servidor lê~~ — não relevante; `vp.challenge` nunca
+  mudou de lugar.
+- ~~`exp: iat + 5min` conflita com a janela de 10 min do challenge~~ — não relevante; não existe
+  `exp` na VP. A VC-JWT em si também não carrega `exp` (ver §8.3, item 4).
 
----
-
-## 9. O que muda com as stories em backlog
-
-Nada nesta seção está implementado. É o contrato-alvo, para o app não ser construído contra algo
-que sai em seguida.
-
-**Stories 5.7 + 5.8** (entrega acoplada):
-
-- `POST /api/credentials/issue` **deixa de aceitar `proofType`**. Corpo passa a ser
-  `{ documentImage, bodySignature }`, e o payload assinado passa a ser apenas `documentImage`.
-- A VC passa a carregar **ambas** as claims: `{ personhood: true, ageOver18: <boolean> }`.
-- **Menor de 18 deixa de receber 422** — emite normalmente com `ageOver18: false`.
-- A verificação passa a exigir que a claim correspondente ao `proof_type` da sessão valha `true`.
-  Consequência para o app: apresentar uma credencial com `ageOver18: false` a uma sessão de
-  `age_over_18` retorna `valid: false`. O app pode **antecipar isso localmente** e avisar a pessoa
-  antes de queimar a sessão — recomendado, já que a falha é terminal.
-
-**Epic 9** (9.1 e 9.2):
-
-- A VC passa a ser **string JWT compacta**, não objeto. `POST /api/credentials/issue` retorna a
-  string.
-- A VP passa a carregar a VC-JWT inteira, e o corpo de `/verify` muda conforme o item 7.
-
-> **Recomendação de sequenciamento:** o app deve ser construído contra o formato **pós-Epic 9**
-> (JWT), não contra o objeto JSON-LD atual. O Epic 9 está na Rodada 1 do plano de rodadas — vai
-> mudar antes de o app existir. Construir contra o formato atual garante retrabalho.
+Se a proposta de VP-JWT completa ainda for desejada, ela segue como trabalho não iniciado — mas o
+estado atual do código já resolveu a parte que a spec do app apontava como bloqueante (item 7),
+por um caminho mais simples.

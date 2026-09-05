@@ -9,4 +9,5 @@ export interface IPinLock {
   initialize(pin: string): Promise<void>;
   verify(pin: string): Promise<void>;
   getStatus(): Promise<PinStatus>;
+  reset(): Promise<void>;
 }
