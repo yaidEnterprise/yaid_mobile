@@ -9,6 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
+      "icon": "./assets/images/yaid_icon.png",
       "infoPlist": {
         "NSCameraUsageDescription": "O YaID usa a câmera para fotografar seu documento de identidade e comprovar sua identidade."
       },
