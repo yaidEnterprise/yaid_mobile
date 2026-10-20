@@ -372,6 +372,19 @@ test('verifyPresentation sends DID-auth headers and { vp, sessionToken }, 200 va
   assert.deepEqual(body, { vp, sessionToken: 'tok' });
 });
 
+test('verifyPresentation 200 { valid: true } without verifiedAt falls back to the clock', async () => {
+  const clock = new ClockMock(1_700_000_000_000);
+  const originalFetch = globalThis.fetch;
+  mockFetchOnce(200, { valid: true });
+  try {
+    const api = new YaIDApiConcrete();
+    const result = await api.verifyPresentation({ did: DID, seed: SEED, sessionToken: 'tok', vp: makeVp(), clock });
+    assert.deepEqual(result.verifiedAt, new Date(1_700_000_000_000));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('verifyPresentation 200 valid:false maps to PresentationRejectedError', async () => {
   const originalFetch = globalThis.fetch;
   mockFetchOnce(200, { valid: false });

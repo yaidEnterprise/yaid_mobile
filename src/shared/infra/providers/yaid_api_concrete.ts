@@ -175,7 +175,9 @@ export class YaIDApiConcrete implements IYaIDApi {
     const body = JSON.parse(rawBody);
 
     if (response.status === 200 && body.valid === true) {
-      return { verifiedAt: new Date(body.verifiedAt) };
+      // server responds only { valid: true } — verifiedAt is optional, fall back to the local clock
+      const verifiedAt = new Date(body.verifiedAt ?? params.clock.nowMs());
+      return { verifiedAt: Number.isNaN(verifiedAt.getTime()) ? new Date(params.clock.nowMs()) : verifiedAt };
     }
 
     if (response.status === 401 && readErrorMessage(body) === 'Request expired') {
