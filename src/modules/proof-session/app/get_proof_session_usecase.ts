@@ -39,7 +39,7 @@ export class GetProofSessionUseCase {
 
     const credential = await this.credentialRepository.load();
     if (session.proofType === ProofType.AgeOver18 && credential?.ageOver18 === false) {
-      return { ok: false, error: new SessionIneligibleError() };
+      return { ok: false, error: new SessionIneligibleError(), session };
     }
 
     return { ok: true, session, canDecide: true };

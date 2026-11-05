@@ -69,7 +69,7 @@ test('needs_credential result propagates companyName', async () => {
   }
 });
 
-test('ineligible result surfaces error kind', async () => {
+test('ineligible result propagates companyName and proofTypeLabel', async () => {
   const { controller, yaIDApi, identityRepository, credentialRepository } = makeController();
   await identityRepository.save(
     createIdentity({ seed: new Uint8Array(32).fill(3), publicKey: new Uint8Array(32).fill(1), did: DID }),
@@ -77,11 +77,19 @@ test('ineligible result surfaces error kind', async () => {
   await credentialRepository.save(
     createCredential({ vcId: 'vc', raw: '{}', issuedAt: new Date(), holder: DID, ageOver18: false }),
   );
-  yaIDApi.scriptProofSession({ status: ProofSessionStatus.WaitingUser, proofType: ProofType.AgeOver18 });
+  yaIDApi.scriptProofSession({
+    status: ProofSessionStatus.WaitingUser,
+    proofType: ProofType.AgeOver18,
+    companyName: 'Empresa Z',
+  });
 
   const result = await controller.execute({ sessionToken: 'tok' });
 
   assert.equal(result.kind, 'ineligible');
+  if (result.kind === 'ineligible') {
+    assert.equal(result.companyName, 'Empresa Z');
+    assert.equal(result.proofTypeLabel, 'você tem mais de 18 anos');
+  }
 });
 
 test('expired result surfaces error kind', async () => {

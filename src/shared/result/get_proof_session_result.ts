@@ -8,7 +8,5 @@ import {
 export type GetProofSessionResult =
   | { readonly ok: true; readonly session: ProofSession; readonly canDecide: true }
   | { readonly ok: false; readonly reason: 'needs_identity' | 'needs_credential'; readonly companyName: string }
-  | {
-      readonly ok: false;
-      readonly error: SessionNotFoundError | SessionExpiredError | SessionIneligibleError;
-    };
+  | { readonly ok: false; readonly error: SessionIneligibleError; readonly session: ProofSession }
+  | { readonly ok: false; readonly error: SessionNotFoundError | SessionExpiredError };

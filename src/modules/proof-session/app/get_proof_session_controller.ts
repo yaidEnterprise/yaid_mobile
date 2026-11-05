@@ -2,7 +2,6 @@ import { GetProofSessionUseCase, GetProofSessionInput } from './get_proof_sessio
 import { GetProofSessionViewModel } from './get_proof_session_viewmodel';
 import {
   SessionExpiredError,
-  SessionIneligibleError,
   SessionNotFoundError,
 } from '../../../shared/domain/errors/presentation_errors';
 
@@ -40,8 +39,9 @@ export class GetProofSessionController {
       return { kind: 'needs_credential', companyName: result.companyName };
     }
 
-    if (result.error instanceof SessionIneligibleError) {
-      return { kind: 'ineligible', companyName: '', proofTypeLabel: '' };
+    if ('session' in result) {
+      const display = this.viewModel.fromSession(result.session);
+      return { kind: 'ineligible', companyName: display.companyName, proofTypeLabel: display.proofTypeLabel };
     }
     if (result.error instanceof SessionExpiredError || result.error instanceof SessionNotFoundError) {
       return { kind: 'expired' };
