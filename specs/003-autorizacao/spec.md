@@ -67,8 +67,8 @@ A empresa pede confirmação de maioridade, mas a credencial da pessoa indica `a
 
 **Acceptance Scenarios**:
 
-1. **Given** a solicitação pede `ageOver18` e a credencial da pessoa tem `ageOver18: false`, **When** a consulta da solicitação é processada, **Then** o aplicativo exibe a tela de inelegibilidade com a mensagem "A [empresa] quer confirmar que você tem mais de 18 anos. Sua verificação YaID indica que não. Você pode recusar este pedido." — sem nunca exibir a tela de decisão.
-2. **Given** a tela de inelegibilidade está visível, **When** a pessoa toca em "Recusar", **Then** o fluxo segue o mesmo caminho de recusa normal — a sessão é cancelada e o resultado "Recusado" é exibido.
+1. **Given** a solicitação pede `ageOver18` e a credencial da pessoa tem `ageOver18: false`, **When** a consulta da solicitação é processada, **Then** o aplicativo exibe a tela de inelegibilidade com o nome da empresa em destaque, a pergunta "A empresa quer confirmar: você tem mais de 18 anos" e a explicação "Sua verificação YaID indica que não. Você pode recusar este pedido. Nada será enviado." — sem nunca exibir a tela de decisão.
+2. **Given** a tela de inelegibilidade está visível, **When** a pessoa toca em "Recusar", **Then** a sessão é cancelada e o aplicativo volta direto para a tela inicial — sem passar pela tela de resultado "Recusado", já que a recusa era a única resposta possível.
 3. **Given** a inelegibilidade foi detectada, **When** o aplicativo exibe a tela de inelegibilidade, **Then** nenhuma chamada ao endpoint de challenge foi feita — a sessão não foi consumida.
 
 ---

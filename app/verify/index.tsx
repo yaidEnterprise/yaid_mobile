@@ -86,6 +86,8 @@ export default function VerifySessionScreen() {
     }
 
     if (result.kind === 'ineligible') {
+      setCompanyName(result.companyName);
+      setProofTypeLabel(result.proofTypeLabel);
       setStep('ineligible');
       return;
     }
@@ -133,13 +135,24 @@ export default function VerifySessionScreen() {
     setStep('pin');
   }
 
-  async function handleRefuse() {
+  async function cancelSession() {
     if (typeof sessionToken !== 'string') {
       return;
     }
     const controller = CancelProofSessionPresenter();
     await controller.execute({ sessionToken });
+  }
+
+  async function handleRefuse() {
+    await cancelSession();
     setStep('refused');
+  }
+
+  // Ineligible has a single possible answer, so refusing ends the flow here
+  // instead of passing through the "Recusado" result screen.
+  async function handleRefuseIneligible() {
+    await cancelSession();
+    goHome();
   }
 
   async function handlePinChange(rawText: string) {
@@ -244,14 +257,19 @@ export default function VerifySessionScreen() {
   if (step === 'ineligible') {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.title} accessibilityRole="header">
+        <Text style={styles.companyName} accessibilityRole="header">
           {companyName}
         </Text>
+        <Text style={styles.question}>{`A empresa quer confirmar: ${proofTypeLabel}`}</Text>
         <Text style={styles.paragraph}>
-          A {companyName} quer confirmar que {proofTypeLabel}. Sua verificação YaID indica que
-          não. Você pode recusar este pedido.
+          Sua verificação YaID indica que não. Você pode recusar este pedido. Nada será enviado.
         </Text>
-        <Pressable style={styles.button} onPress={handleRefuse} accessibilityRole="button" accessibilityLabel="Recusar">
+        <Pressable
+          style={styles.decisionButton}
+          onPress={handleRefuseIneligible}
+          accessibilityRole="button"
+          accessibilityLabel="Recusar"
+        >
           <Text style={styles.buttonText}>Recusar</Text>
         </Pressable>
       </SafeAreaView>
